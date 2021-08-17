@@ -129,7 +129,7 @@ void GEMDigiProducer::fillDescriptions(edm::ConfigurationDescriptions& descripti
   desc.add<double>("GE11ElecBkgParam1", -2.90939);
   desc.add<double>("GE11ElecBkgParam2", 0.00548191);
   desc.add<double>("GE21ElecBkgParam0", 97.0505);
-  desc.add<double>("GE21ElecBkgParam1", -43.3928);
+  desc.add<double>("GE21ElecBkgParam1", 43.3928);
   desc.add<double>("GE21ElecBkgParam2", 00.000550599);
 
   descriptions.add("simMuonGEMDigisDef", desc);
