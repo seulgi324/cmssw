@@ -94,6 +94,7 @@ void GEMDigiProducer::fillDescriptions(edm::ConfigurationDescriptions& descripti
   // in terms of 25 ns
   desc.add<int>("minBunch", -5);
   desc.add<int>("maxBunch", 3);
+  desc.add<int>("pulseStretching", 0);
 
   desc.add<bool>("fixedRollRadius", true);
   // Uses fixed radius in the center of the roll
@@ -114,6 +115,7 @@ void GEMDigiProducer::fillDescriptions(edm::ConfigurationDescriptions& descripti
   desc.add<double>("referenceInstLumi", 5.);
   // referecne inst. luminosity 5E+34 cm^-2s^-1
   desc.add<double>("resolutionX", 0.03);
+  desc.add<double>("energyMinCut", 28.1e-09);
 
   // The follwing parameters are needed to model the background contribution
   // The parameters have been obtained after the fit of th perdicted by FLUKA

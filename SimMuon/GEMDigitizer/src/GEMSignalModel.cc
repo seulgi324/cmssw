@@ -22,9 +22,10 @@ GEMSignalModel::GEMSignalModel(const edm::ParameterSet& config)
       signalPropagationSpeed_(config.getParameter<double>("signalPropagationSpeed")),
       bx0filter_(config.getParameter<bool>("bx0filter")),
       resolutionX_(config.getParameter<double>("resolutionX")),
-      cspeed(geant_units::operators::convertMmToCm(CLHEP::c_light)),
       // average energy required to remove an electron due to ionization for an Ar/CO2 gas mixture (in the ratio of 70/30) is 28.1 eV
-      energyMinCut(28.1e-09) {}
+      energyMinCut_(config.getParameter<double>("energyMinCut")),
+      pulseStretching_(config.getParameter<int>("pulseStretching")),
+      cspeed(geant_units::operators::convertMmToCm(CLHEP::c_light)) {}
 
 GEMSignalModel::~GEMSignalModel() {}
 
@@ -35,7 +36,7 @@ void GEMSignalModel::simulate(const GEMEtaPartition* roll,
                               DetectorHitMap& detectorHitMap_) {
   const GEMStripTopology* top(dynamic_cast<const GEMStripTopology*>(&(roll->topology())));
   for (const auto& hit : simHits) {
-    if (hit.energyLoss() < energyMinCut)
+    if (hit.energyLoss() < energyMinCut_)
       continue;
     const int bx(getSimHitBx(&hit, engine));
     if (bx != 0 and bx0filter_)
@@ -89,7 +90,7 @@ int GEMSignalModel::getSimHitBx(const PSimHit* simhit, CLHEP::HepRandomEngine* e
   referenceTime = timeCalibrationOffset_ + halfStripLength / signalPropagationSpeedTrue + averageShapingTime_;
   const float timeDifference(simhitTime - referenceTime);
   // assign the bunch crossing
-  bx = static_cast<int>(std::round((timeDifference) / 25.));
+  bx = static_cast<int>(std::round((timeDifference) / (25. * (pulseStretching_ + 1))));
 
   // check time
   LogDebug("GEMDigiProducer") << "checktime "

@@ -46,8 +46,9 @@ private:
   bool bx0filter_;
   bool digitizeOnlyMuons_;
   double resolutionX_;
+  double energyMinCut_;
+  int pulseStretching_;
 
   const double cspeed;
-  const double energyMinCut;
 };
 #endif
