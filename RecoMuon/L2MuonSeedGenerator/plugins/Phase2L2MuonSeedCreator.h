@@ -39,13 +39,19 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 
 #include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
-#include "DataFormats/CSCRecHit/interface/CSCSegment.h"
-#include "DataFormats/DTRecHit/interface/DTRecSegment4D.h"
+#include "DataFormats/CSCRecHit/interface/CSCSegmentCollection.h"
+#include "DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h"
+#include "DataFormats/GEMRecHit/interface/GEMSegmentCollection.h"
+//#include "DataFormats/GEMRecHit/interface/ME0SegmentCollection.h"
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
+#include "DataFormats/MuonDetId/interface/GEMDetId.h"
+//#include "DataFormats/MuonDetId/interface/ME0DetId.h"
 
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "Geometry/DTGeometry/interface/DTGeometry.h"
+#include "Geometry/GEMGeometry/interface/GEMGeometry.h"
+//#include "Geometry/GEMGeometry/interface/ME0Geometry.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
 
 #include "RecoMuon/TransientTrackingRecHit/interface/MuonTransientTrackingRecHit.h"
@@ -90,9 +96,13 @@ private:
   const edm::EDGetTokenT<l1t::TrackerMuonCollection> l1TkMuCollToken_;
   const edm::EDGetTokenT<CSCSegmentCollection> cscSegmentCollToken_;
   const edm::EDGetTokenT<DTRecSegment4DCollection> dtSegmentCollToken_;
+  const edm::EDGetTokenT<GEMSegmentCollection> gemSegmentCollToken_;
+  //const edm::EDGetTokenT<ME0SegmentCollection> me0SegmentCollToken_;
 
   const edm::ESGetToken<CSCGeometry, MuonGeometryRecord> cscGeometryToken_;
   const edm::ESGetToken<DTGeometry, MuonGeometryRecord> dtGeometryToken_;
+  const edm::ESGetToken<GEMGeometry, MuonGeometryRecord> gemGeometryToken_;
+  //const edm::ESGetToken<ME0Geometry, MuonGeometryRecord> me0GeometryToken_;
   const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magneticFieldToken_;
 
   // Miminum and maximum pt momentum of a track
@@ -109,10 +119,13 @@ private:
 
   const double maxEtaBarrel_;   // barrel with |eta| < 0.7
   const double maxEtaOverlap_;  // overlap with |eta| < 1.3, endcap after that
+  const double maxEtaCsc_; // CSCs + GEMs cover up to |eta| < 2.4
 
   // Handles
   edm::ESHandle<CSCGeometry> cscGeometry_;
   edm::ESHandle<DTGeometry> dtGeometry_;
+  edm::ESHandle<GEMGeometry> gemGeometry_;
+  //edm::ESHandle<ME0Geometry> me0Geometry_;
 
   std::unique_ptr<MuonServiceProxy> service_;
   std::unique_ptr<MeasurementEstimator> estimator_;
@@ -138,6 +151,17 @@ private:
                                                 const l1t::MuonStubRef stub,
                                                 const CSCSegmentCollection& segments,
                                                 const float l1TkMuTheta) const;
+
+  // Logic to match L1 stubs to GEM segments
+  const std::pair<GEMDetId, int> matchingStubSegment(const l1t::MuonStubRef stub,
+                                                const GEMSegmentCollection& segments,
+                                                const float l1TkMuTheta) const;
+
+  // Logic to match L1 stubs to ME0 segments
+  //const std::pair<int, int> matchingStubSegment(const ME0DetId& stubId,
+  //                                              const l1t::MuonStubRef stub,
+  //                                              const ME0SegmentCollection& segments,
+  //                                              const float l1TkMuTheta) const;
 
   // Logic to extrapolate from nearby stations in the barrel
   const std::pair<int, int> extrapolateToNearbyStation(const int endingStation,
