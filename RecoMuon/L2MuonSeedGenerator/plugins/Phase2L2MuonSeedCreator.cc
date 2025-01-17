@@ -40,11 +40,9 @@ Phase2L2MuonSeedCreator::Phase2L2MuonSeedCreator(const edm::ParameterSet& pset)
       cscSegmentCollToken_{consumes(pset.getParameter<edm::InputTag>("cscRecSegmentLabel"))},
       dtSegmentCollToken_{consumes(pset.getParameter<edm::InputTag>("dtRecSegmentLabel"))},
       gemSegmentCollToken_{consumes(pset.getParameter<edm::InputTag>("gemRecSegmentLabel"))},
-      //me0SegmentCollToken_{consumes(pset.getParameter<edm::InputTag>("me0RecSegmentLabel"))},
       cscGeometryToken_{esConsumes<CSCGeometry, MuonGeometryRecord>()},
       dtGeometryToken_{esConsumes<DTGeometry, MuonGeometryRecord>()},
       gemGeometryToken_{esConsumes<GEMGeometry, MuonGeometryRecord>()},
-      //me0GeometryToken_{esConsumes<ME0Geometry, MuonGeometryRecord>()},
       magneticFieldToken_{esConsumes<MagneticField, IdealMagneticFieldRecord>()},
       minMomentum_{pset.getParameter<double>("minPL1Tk")},
       maxMomentum_{pset.getParameter<double>("maxPL1Tk")},
@@ -54,7 +52,6 @@ Phase2L2MuonSeedCreator::Phase2L2MuonSeedCreator(const edm::ParameterSet& pset)
       extrapolationDeltaPhiFar_{pset.getParameter<double>("extrapolationWindowFar")},
       maxEtaBarrel_{pset.getParameter<double>("maximumEtaBarrel")},
       maxEtaOverlap_{pset.getParameter<double>("maximumEtaOverlap")},
-      maxEtaCsc_{pset.getParameter<double>("maximumEtaCSCs")},
       propagatorName_{pset.getParameter<string>("propagator")} {
   // Service parameters
   edm::ParameterSet serviceParameters = pset.getParameter<edm::ParameterSet>("serviceParameters");
@@ -70,7 +67,6 @@ void Phase2L2MuonSeedCreator::fillDescriptions(edm::ConfigurationDescriptions& d
   desc.add<edm::InputTag>("cscRecSegmentLabel", edm::InputTag("hltCscSegments"));
   desc.add<edm::InputTag>("dtRecSegmentLabel", edm::InputTag("hltDt4DSegments"));
   desc.add<edm::InputTag>("gemRecSegmentLabel", edm::InputTag("hltGemSegments"));
-  //desc.add<edm::InputTag>("me0RecSegmentLabel", edm::InputTag("hltMe0Segments"));
   desc.add<double>("minPL1Tk", 3.5);
   desc.add<double>("maxPL1Tk", 200);
   desc.add<double>("stubMatchDPhi", 0.05);
@@ -79,7 +75,6 @@ void Phase2L2MuonSeedCreator::fillDescriptions(edm::ConfigurationDescriptions& d
   desc.add<double>("extrapolationWindowFar", 0.05);
   desc.add<double>("maximumEtaBarrel", 0.7);
   desc.add<double>("maximumEtaOverlap", 1.3);
-  desc.add<double>("maximumEtaCSCs", 2.4);
   desc.add<string>("propagator", "SteppingHelixPropagatorAny");
 
   // Service parameters
@@ -105,13 +100,10 @@ void Phase2L2MuonSeedCreator::produce(edm::Event& iEvent, const edm::EventSetup&
   auto dtSegments = *dtHandle;
   auto gemHandle = iEvent.getHandle(gemSegmentCollToken_);
   auto gemSegments = *gemHandle;
-  //auto me0Handle = iEvent.getHandle(me0SegmentCollToken_);
-  //auto me0Segments = *me0Handle;
 
   cscGeometry_ = iSetup.getHandle(cscGeometryToken_);
   dtGeometry_ = iSetup.getHandle(dtGeometryToken_);
   gemGeometry_ = iSetup.getHandle(gemGeometryToken_);
-  //me0Geometry_ = iSetup.getHandle(me0GeometryToken_);
 
   auto magneticFieldHandle = iSetup.getHandle(magneticFieldToken_);
 
@@ -178,9 +170,9 @@ void Phase2L2MuonSeedCreator::produce(edm::Event& iEvent, const edm::EventSetup&
 
     // Loop on L1TkMu stubs to find best association to DT/CSC segments
     for (const auto& stub : stubRefs) {
-      //#ifdef EDM_ML_DEBUG
+#ifdef EDM_ML_DEBUG
       stub->print();
-      //#endif
+#endif
       // Separate barrel, endcap and overlap cases
       switch (muonType) {
         case barrel: {
@@ -216,44 +208,45 @@ void Phase2L2MuonSeedCreator::produce(edm::Event& iEvent, const edm::EventSetup&
           if (!stub->isEndcap()) {
             continue;  // skip all non-endcap stubs
           }
-          if (eta <= maxEtaCsc_) {
-            // Create detId for stub
-            int endcap = (eta > 0) ? 1 : 2;  // CSC DetId endcap (1 -> Forward, 2 -> Backwards)
-            CSCDetId stubId = CSCDetId(endcap,
-                                       stub->depthRegion(),              // station
-                                       6 - std::abs(stub->etaRegion()),  // ring, online to offline
-                                       stub->phiRegion());               // chamber
-            LogDebug(metname) << "Stub CSC detId: " << stubId << ". RawId: " << stubId.rawId();
+          // Check CSCs
+          // Create CSCDetId for stub
+          int endcap = (eta > 0) ? 1 : 2;  // CSC DetId endcap (1 -> Forward, 2 -> Backwards)
+          CSCDetId stubId = CSCDetId(endcap,
+                                     stub->depthRegion(),              // station
+                                     6 - std::abs(stub->etaRegion()),  // ring, online to offline
+                                     stub->phiRegion());               // chamber
+          LogDebug(metname) << "Stub CSC detId: " << stubId << ". RawId: " << stubId.rawId();
 
-            auto& tmpMatch = matchingStubSegment(stubId, stub, cscSegments, theta);
+          auto& tmpMatch = matchingStubSegment(stubId, stub, cscSegments, theta);
 
-            // Found a match -> update matching info
-            if (tmpMatch.first != -1) {
-              matchesInEndcap.emplace(stubId, tmpMatch);
+          // Found a CSC match -> update matching info
+          if (tmpMatch.first != -1) {
+            matchesInEndcap.emplace(stubId, tmpMatch);
+            atLeastOneMatch = true;
+          }
+          // Check GEMs
+          if (gemSegments.size() != 0) {
+            std::cout << "Checking GEM segments" << std::endl;
+            // Stub GEMDetId? Try only geometrically first
+            auto& gemMatch = matchingStubSegment(stub, gemSegments, theta);
+            if (gemMatch.second != -1) {
+              std::cout << "Found a GEM match at eta " << eta << ", in Station " << gemMatch.first.station() << " with "
+                        << gemSegments[gemMatch.second].nRecHits() << " hits" << std::endl;
+              matchesInGems.emplace(gemMatch.first, gemMatch.second);
               atLeastOneMatch = true;
-            } else if (gemSegments.size() != 0) {
-              // Check GEMs
-              // Stub GEMDetId? Try only geometrically first
-              auto& gemMatch = matchingStubSegment(stub, gemSegments, theta);
-              if (gemMatch.second != -1) {
-                matchesInGems.emplace(gemMatch.first, gemMatch.second);
-                atLeastOneMatch = true;
-              }
             }
-          } else if (eta > maxEtaCsc_) {
-            // Check ME0
           }
 
-          //#ifdef EDM_ML_DEBUG
+#ifdef EDM_ML_DEBUG
           LogDebug(metname) << "ENDCAP best segments:";
           for (const auto& [detId, matchingPair] : matchesInEndcap) {
-            LogDebug(metname) << "Station " << detId.station() << " (" << matchingPair.first << ", " << matchingPair.second
-                      << ")";
+            LogDebug(metname) << "Station " << detId.station() << " (" << matchingPair.first << ", "
+                              << matchingPair.second << ")";
           }
           for (const auto& [detId, matchingSegment] : matchesInGems) {
-            LogDebug(metname) << "Station " << detId.station() << ", GEM segment " << matchingSegment;
+            LogDebug(metname) << "GEM Station " << detId.station() << ", GEM segment " << matchingSegment;
           }
-          //#endif
+#endif
           break;
         }  // End endcap
 
@@ -416,7 +409,8 @@ void Phase2L2MuonSeedCreator::produce(edm::Event& iEvent, const edm::EventSetup&
         }
         // GEMs
         for (auto& [detId, matchingGemSegment] : matchesInGems) {
-          LogDebug(metname) << "Adding matched GEM segment's recHits in station " << detId.station() << " to the seed (GEM stations: 0, 1, 2)";
+          LogDebug(metname) << "Adding matched GEM segment's recHits in station " << detId.station()
+                            << " to the seed (GEM stations: 0, 1, 2)";
           const auto& segment = gemSegments[matchingGemSegment];
           LogDebug(metname) << segment;
           for (const auto& recHit : segment.recHits()) {
@@ -455,8 +449,7 @@ void Phase2L2MuonSeedCreator::produce(edm::Event& iEvent, const edm::EventSetup&
         tsos = detsWithStates.front().second;
       } else if (detsWithStates.empty() and bestInDt) {
         // Propagation to MB2 failed, fallback to ME2 (might be an overlap edge case)
-        LogDebug(metname) << "Warning: detsWithStates collection is empty for a barrel collection. Falling back to ME2"
-                ;
+        LogDebug(metname) << "Warning: detsWithStates collection is empty for a barrel collection. Falling back to ME2";
         // Get ME2 DetLayer
         DetId fallback_id = eta > 0 ? CSCDetId(1, 2, 0, 0, 0) : CSCDetId(2, 2, 0, 0, 0);
         const DetLayer* ME2DetLayer = service_->detLayerGeometry()->idToLayer(fallback_id);
@@ -472,11 +465,12 @@ void Phase2L2MuonSeedCreator::produce(edm::Event& iEvent, const edm::EventSetup&
         const GeomDet* newTSOSDet = detsWithStates.front().first;
         LogDebug(metname) << "Most compatible detector: " << newTSOSDet->geographicalId().rawId();
         if (newTSOS.isValid()) {
-          LogDebug(metname) << "pos: (r=" << newTSOS.globalPosition().mag() << ", phi=" << newTSOS.globalPosition().phi()
-                    << ", eta=" << newTSOS.globalPosition().eta() << ")";
+          LogDebug(metname) << "pos: (r=" << newTSOS.globalPosition().mag()
+                            << ", phi=" << newTSOS.globalPosition().phi() << ", eta=" << newTSOS.globalPosition().eta()
+                            << ")";
           LogDebug(metname) << "mom: (q*pt=" << newTSOS.charge() * newTSOS.globalMomentum().perp()
-                    << ", phi=" << newTSOS.globalMomentum().phi() << ", eta=" << newTSOS.globalMomentum().eta() << ")"
-                  ;
+                            << ", phi=" << newTSOS.globalMomentum().phi() << ", eta=" << newTSOS.globalMomentum().eta()
+                            << ")";
           // Transform the TrajectoryStateOnSurface in a Persistent TrajectoryStateOnDet
           const PTrajectoryStateOnDet& seedTSOS =
               trajectoryStateTransform::persistentState(newTSOS, newTSOSDet->geographicalId().rawId());
@@ -736,13 +730,13 @@ const std::pair<GEMDetId, int> Phase2L2MuonSeedCreator::matchingStubSegment(cons
 
     // Inside phi window -> check hit multiplicity
     unsigned int nHits = segment->nRecHits();
-    LogDebug(metname) << "GEM found match in deltaPhi: " << std::distance(segments.begin(), segment) << " with " << nHits
-              << " hits";
+    LogDebug(metname) << "GEM found match in deltaPhi: " << std::distance(segments.begin(), segment) << " with "
+                      << nHits << " hits";
 
     if (nHits == nHitsBest) {
       // Same hit multiplicity -> check delta theta
-      LogDebug(metname) << "Found GEM segment with same hits (" << nHitsBest << ") as previous best, checking theta window"
-              ;
+      LogDebug(metname) << "Found GEM segment with same hits (" << nHitsBest
+                        << ") as previous best, checking theta window";
 
       if (deltaTheta > matchingThetaWindow_) {
         continue;  // skip segments outside theta window
@@ -756,8 +750,8 @@ const std::pair<GEMDetId, int> Phase2L2MuonSeedCreator::matchingStubSegment(cons
       // More hits -> update bestSegment and quality
       bestSegIndex = std::distance(segments.begin(), segment);
       matchingGemDetId = segId;
-      LogDebug(metname) << "Found GEM segment with more hits. Index: " << bestSegIndex << " with " << nHits << ">" << nHitsBest
-                << " hits";
+      LogDebug(metname) << "Found GEM segment with more hits. Index: " << bestSegIndex << " with " << nHits << ">"
+                        << nHitsBest << " hits";
       nHitsBest = nHits;
     }
   }  // End loop on segments
