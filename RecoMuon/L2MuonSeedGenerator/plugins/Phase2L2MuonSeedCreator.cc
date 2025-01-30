@@ -80,6 +80,8 @@ void Phase2L2MuonSeedCreator::fillDescriptions(edm::ConfigurationDescriptions& d
   // Service parameters
   edm::ParameterSetDescription psd0;
   psd0.addUntracked<std::vector<std::string>>("Propagators", {"SteppingHelixPropagatorAny"});
+  psd0.add<bool>("GEMLayers", true);
+  psd0.add<bool>("ME0Layers", true);
   psd0.add<bool>("RPCLayers", true);
   psd0.addUntracked<bool>("UseMuonNavigation", true);
   desc.add<edm::ParameterSetDescription>("serviceParameters", psd0);

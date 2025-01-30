@@ -33,7 +33,7 @@ GEMSegmentBuilder::~GEMSegmentBuilder() {}
 
 void GEMSegmentBuilder::fillDescription(edm::ParameterSetDescription& desc) {
   desc.add<bool>("enableGE0", true);
-  desc.add<bool>("enableGE12", true);
+  desc.add<bool>("enableGE12", false);
   desc.add<std::string>("ge0_name", "GE0SegAlgoRU");
   desc.add<std::string>("algo_name", "GEMSegmentAlgorithm");
 

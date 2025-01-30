@@ -16,6 +16,8 @@ hltL2MuonSeedsFromL1TkMuon = cms.EDProducer('Phase2L2MuonSeedCreator',
     propagator = cms.string('SteppingHelixPropagatorAny'),
     serviceParameters = cms.PSet(
         Propagators = cms.untracked.vstring('SteppingHelixPropagatorAny'),
+        GEMLayers = cms.bool(True),
+        ME0Layers = cms.bool(True),
         RPCLayers = cms.bool(True),
         UseMuonNavigation = cms.untracked.bool(True)
     ),
