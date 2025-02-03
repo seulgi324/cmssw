@@ -147,8 +147,8 @@ private:
 
   // Logic to match L1 stubs to GEM segments
   const std::pair<GEMDetId, int> matchingStubSegment(const l1t::MuonStubRef stub,
-                                                const GEMSegmentCollection& segments,
-                                                const float l1TkMuTheta) const;
+                                                     const GEMSegmentCollection& segments,
+                                                     const float l1TkMuTheta) const;
 
   // Logic to extrapolate from nearby stations in the barrel
   const std::pair<int, int> extrapolateToNearbyStation(const int endingStation,
