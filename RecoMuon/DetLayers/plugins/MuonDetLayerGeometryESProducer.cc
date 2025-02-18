@@ -81,7 +81,7 @@ std::unique_ptr<MuonDetLayerGeometry> MuonDetLayerGeometryESProducer::produce(co
 
   // Build GEM layers
   if (auto gem = record.getHandle(gemToken_)) {
-    muonDetLayerGeometry->addGEMLayers(MuonGEMDetLayerGeometryBuilder::buildEndcapLayers(*gem));
+    muonDetLayerGeometry->addGEMLayers(MuonGEMDetLayerGeometryBuilder::buildEndcapLayers(*gem, true)); // TODO Make a switch to turn ME0 segments on/off
   } else {
     LogInfo(metname) << "No GEM geometry is available.";
   }

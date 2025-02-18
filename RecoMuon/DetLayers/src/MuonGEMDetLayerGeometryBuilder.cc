@@ -20,11 +20,31 @@ MuonGEMDetLayerGeometryBuilder::~MuonGEMDetLayerGeometryBuilder() {}
 
 // Builds the forward (first) and backward (second) layers
 // Builds etaPartitions (for rechits)
-pair<vector<DetLayer*>, vector<DetLayer*> > MuonGEMDetLayerGeometryBuilder::buildEndcapLayers(const GEMGeometry& geo) {
+pair<vector<DetLayer*>, vector<DetLayer*> > MuonGEMDetLayerGeometryBuilder::buildEndcapLayers(const GEMGeometry& geo, bool me0Segments) {
   vector<DetLayer*> endcapLayers[2];
 
   const std::string metname = "Muon|RecoMuon|RecoMuonDetLayers|MuonGEMDetLayerGeometryBuilder";
   for (auto st : geo.stations()) {
+    // use me0 segments instead of layers (make this a switch)
+    if (me0Segments and st->station() == GEMDetId::minStationId0) {
+      // adapted from ME0 code
+      vector<int> chambers;
+      vector<const GeomDet*> dets;
+      for (auto sc : st->superChambers()) {
+	dets.push_back(geo.idToDet(sc->id()));
+      }
+      if (!dets.empty()) {
+	precomputed_value_sort(dets.begin(), dets.end(), geomsort::DetPhi());
+	auto ring = new MuDetRing(dets);
+	vector<const ForwardDetRing*> rings = {ring};
+	auto layer = new MuRingForwardLayer(rings);
+	int iendcap = (st->region() == 1) ? 0 : 1;
+	endcapLayers[iendcap].push_back(layer);
+      }
+      std::cout << "Made an GE0 endcap layer for segments! " << st->station() << " " << st->region() << std::endl;
+      continue;
+    }
+
     const int maxLayerId = (st->station() == GEMDetId::minStationId0) ? GEMDetId::maxLayerId0 : GEMDetId::maxLayerId;
     for (int layer = GEMDetId::minLayerId + 1; layer <= maxLayerId; ++layer) {
       ForwardDetLayer* forwardLayer = nullptr;

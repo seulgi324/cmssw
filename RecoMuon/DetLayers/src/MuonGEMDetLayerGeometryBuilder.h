@@ -28,7 +28,7 @@ public:
 
   /// Builds the forward (+Z, return.first) and backward (-Z, return.second) layers.
   /// Both vectors are sorted inside-out
-  static std::pair<std::vector<DetLayer*>, std::vector<DetLayer*> > buildEndcapLayers(const GEMGeometry& geo);
+  static std::pair<std::vector<DetLayer*>, std::vector<DetLayer*> > buildEndcapLayers(const GEMGeometry& geo, bool me0Segments=false);
 
 private:
   static bool isFront(const GEMDetId& gemId);

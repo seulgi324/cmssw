@@ -417,6 +417,7 @@ StandAloneMuonTrajectoryBuilder::DetLayerWithState StandAloneMuonTrajectoryBuild
 
   // ask for compatible layers
   vector<const DetLayer*> detLayers;
+  std::cout << "Looking for compat layers, " << initialLayer << " from seed id: " << seedDetId << std::endl;
 
   if (theNavigationType == "Standard")
     detLayers =
