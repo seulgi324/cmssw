@@ -51,7 +51,7 @@ MuonDetLayerMeasurements::MuonDetLayerMeasurements(edm::InputTag dtlabel,
   dtToken_ = iC.consumes<DTRecSegment4DCollection>(dtlabel);
   cscToken_ = iC.consumes<CSCSegmentCollection>(csclabel);
   rpcToken_ = iC.consumes<RPCRecHitCollection>(rpclabel);
-  gemToken_ = iC.consumes<GEMRecHitCollection>(gemlabel);
+  gemToken_ = iC.consumes<GEMSegmentCollection>(gemlabel);
   me0Token_ = iC.consumes<ME0SegmentCollection>(me0label);
 
   static std::atomic<int> procInstance{0};
@@ -103,15 +103,22 @@ MuonRecHitContainer MuonDetLayerMeasurements::recHits(const GeomDet* geomDet, co
 
       // Create the chamber Id
       CSCDetId chamberId(geoId.rawId());
-      LogDebug("Muon|RecoMuon|MuonDetLayerMeasurements") << "(CSC): " << chamberId << std::endl;
+      //std::cout << "---------------------------------------------\n";
+      //std::cout << "(CSC): " << chamberId << std::endl;
 
       // Get the CSC-Segment which relies on this chamber
       CSCSegmentCollection::range range = theCSCRecHits->get(chamberId);
 
+      //std::cout << "Segments found in chamber: " << std::distance(range.first, range.second) << std::endl;
+
       // Create the MuonTransientTrackingRecHit
-      for (CSCSegmentCollection::const_iterator rechit = range.first; rechit != range.second; ++rechit)
-        result.push_back(MuonTransientTrackingRecHit::specificBuild(geomDet, &*rechit));
+      for (CSCSegmentCollection::const_iterator segmentIt = range.first; segmentIt != range.second; ++segmentIt)
+        for (const auto& rechit : segmentIt->specificRecHits()) {
+          result.push_back(MuonTransientTrackingRecHit::specificBuild(geomDet, &rechit));
+        }
     }
+    //std::cout << "Number of CSC rechits: " << result.size() << std::endl;
+    //std::cout << "---------------------------------------------\n";
   }
 
   else if (geoId.subdetId() == MuonSubdetId::RPC) {
@@ -136,25 +143,28 @@ MuonRecHitContainer MuonDetLayerMeasurements::recHits(const GeomDet* geomDet, co
       // Create the chamber Id
       GEMDetId chamberId(geoId.rawId());
 
-      LogDebug("Muon|RecoMuon|MuonDetLayerMeasurements") << "(GEM): " << chamberId << std::endl;
+      std::cout << "---------------------------------------------\n";
+      std::cout << "(GEM): " << chamberId << std::endl;
 
       // Get the GEM-Segment which relies on this chamber
-      GEMRecHitCollection::range range = theGEMRecHits->get(chamberId);
+      GEMSegmentCollection::range range = theGEMRecHits->get(chamberId);
 
-      LogDebug("Muon|RecoMuon|MuonDetLayerMeasurements")
-          << "Number of GEM rechits available =  " << theGEMRecHits->size() << ", from chamber: " << chamberId
-          << std::endl;
+      std::cout << "Segments found in chamber: " << std::distance(range.first, range.second) << std::endl;
 
       // Create the MuonTransientTrackingRecHit
-      for (GEMRecHitCollection::const_iterator rechit = range.first; rechit != range.second; ++rechit)
-        result.push_back(MuonTransientTrackingRecHit::specificBuild(geomDet, &*rechit));
-      LogDebug("Muon|RecoMuon|MuonDetLayerMeasurements") << "Number of GEM rechits = " << result.size() << std::endl;
+      for (GEMSegmentCollection::const_iterator recHit = range.first; recHit != range.second; ++recHit) {
+        result.push_back(MuonTransientTrackingRecHit::specificBuild(geomDet, &*recHit));
+      }
+
+      std::cout << "Number of GEM rechits = " << result.size() << std::endl;
+      std::cout << "---------------------------------------------\n";
     }
   }
 
   else if (geoId.subdetId() == MuonSubdetId::ME0) {
     LogDebug("Muon|RecoMuon|MuonDetLayerMeasurements") << "(ME0): identified" << std::endl;
     if (enableME0Measurement) {
+      std::cout << "Checking ME0 RecHits (HOW?)" << std::endl;
       checkME0RecHits();
 
       // Create the chamber Id
@@ -198,7 +208,9 @@ void MuonDetLayerMeasurements::checkDTRecHits() {
   if (cacheID == theDTEventCacheID)
     return;
 
-  { theEvent->getByToken(dtToken_, theDTRecHits); }
+  {
+    theEvent->getByToken(dtToken_, theDTRecHits);
+  }
   if (!theDTRecHits.isValid()) {
     throw cms::Exception("MuonDetLayerMeasurements") << "Cannot get DT RecHits";
   }

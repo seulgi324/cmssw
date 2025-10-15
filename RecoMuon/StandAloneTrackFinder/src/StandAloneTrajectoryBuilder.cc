@@ -35,6 +35,8 @@
 #include "Geometry/CommonDetUnit/interface/GeomDet.h"
 #include "TrackingTools/TrackRefitter/interface/SeedTransformer.h"
 
+#include "DataFormats/MuonDetId/interface/MuonSubdetId.h"
+
 using namespace edm;
 using namespace std;
 
@@ -140,6 +142,9 @@ MuonTrajectoryBuilder::TrajectoryContainer StandAloneMuonTrajectoryBuilder::traj
   // obtain more than one trajectory. TODO: this feature is not yet implemented!
   TrajectoryContainer trajectoryContainer;
 
+  std::cout << "StandaloneTrajectoryBuilder::trajectories" << std::endl;
+  std::cout << "Seed size: " << seed.nHits() << std::endl;
+
   PropagationDirection fwDirection = (theSeedPosition == recoMuon::in) ? alongMomentum : oppositeToMomentum;
   Trajectory trajectoryFW(seed, fwDirection);
 
@@ -149,6 +154,7 @@ MuonTrajectoryBuilder::TrajectoryContainer StandAloneMuonTrajectoryBuilder::traj
   vector<Trajectory> seedTrajectories;
 
   if (doSeedRefit) {
+    std::cout << "refitting the seed" << std::endl;
     seedTrajectories = theSeedTransformer->seedTransform(seed);
     if (!seedTrajectories.empty()) {
       TrajectoryMeasurement lastTM(seedTrajectories.front().lastMeasurement());
@@ -158,18 +164,21 @@ MuonTrajectoryBuilder::TrajectoryContainer StandAloneMuonTrajectoryBuilder::traj
   }
 
   if (!doSeedRefit || seedTrajectories.empty()) {
+    std::cout << "No refit or empty trajectories" << std::endl;
     lastTSOS = theSeedTransformer->seedTransientState(seed);
     lastDetId = seed.startingState().detId();
   }
 
-  LogTrace(metname) << "Trajectory State on Surface before the extrapolation" << endl;
-  LogTrace(metname) << debug.dumpTSOS(lastTSOS);
+  std::cout << "Trajectory State on Surface before the extrapolation" << std::endl;
+  std::cout << debug.dumpTSOS(lastTSOS) << std::endl;
 
   // Segment layer
-  LogTrace(metname) << "The RecSegment relies on: " << endl;
-  LogTrace(metname) << debug.dumpMuonId(lastDetId);
+  std::cout << "The RecSegment relies on: " << std::endl;
+  std::cout << debug.dumpMuonId(lastDetId) << std::endl;
+  std::cout << "lastDetId subDetId: " << lastDetId.subdetId() << std::endl;
+  std::cout << "lastDetId ME0? " << (lastDetId.subdetId() == MuonSubdetId::ME0) << std::endl;
 
-  DetLayerWithState inputFromSeed = propagateTheSeedTSOS(lastTSOS, lastDetId);
+ DetLayerWithState inputFromSeed = propagateTheSeedTSOS(lastTSOS, lastDetId);
 
   // refine the FTS given by the seed
 
@@ -237,10 +246,10 @@ MuonTrajectoryBuilder::TrajectoryContainer StandAloneMuonTrajectoryBuilder::traj
   }
   // -- end 2nd attempt
 
-  LogTrace(metname) << "Number of DT/CSC/RPC/GEM/ME0 chamber used (fw): " << filter()->getDTChamberUsed() << "/"
-                    << filter()->getCSCChamberUsed() << "/" << filter()->getRPCChamberUsed() << "/"
-                    << filter()->getGEMChamberUsed() << "/" << filter()->getME0ChamberUsed() << endl;
-  LogTrace(metname) << "Momentum: " << tsosAfterRefit.freeState()->momentum();
+  std::cout << "Number of DT/CSC/RPC/GEM/ME0 chamber used (fw): " << filter()->getDTChamberUsed() << "/"
+            << filter()->getCSCChamberUsed() << "/" << filter()->getRPCChamberUsed() << "/"
+            << filter()->getGEMChamberUsed() << "/" << filter()->getME0ChamberUsed() << std::endl;
+  std::cout << "Momentum: " << tsosAfterRefit.freeState()->momentum() << std::endl;
 
   if (!doBackwardFilter) {
     LogTrace(metname) << "Only forward refit requested. No backward refit will be performed!" << endl;
@@ -408,6 +417,7 @@ StandAloneMuonTrajectoryBuilder::DetLayerWithState StandAloneMuonTrajectoryBuild
 
   // ask for compatible layers
   vector<const DetLayer*> detLayers;
+  std::cout << "Looking for compat layers, " << initialLayer << " from seed id: " << seedDetId << std::endl;
 
   if (theNavigationType == "Standard")
     detLayers =

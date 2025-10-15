@@ -147,8 +147,9 @@ void L2MuonProducer::produce(edm::Event& event, const edm::EventSetup& eventSetu
   theService->update(eventSetup);
 
   // Reconstruct
-  LogTrace(metname) << "Track Reconstruction" << endl;
+  std::cout << "Track Reconstruction" << std::endl;
   theTrackFinder->reconstruct(seeds, event, eventSetup);
+  std::cout << "MADE IT" << std::endl;
 
   LogTrace(metname) << "edm::Event loaded"
                     << "================================" << endl
@@ -207,9 +208,9 @@ void L2MuonProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptio
       psd1.add<edm::InputTag>("RPCRecSegmentLabel", edm::InputTag("hltRpcRecHits"));
       psd1.add<std::string>("Propagator", "hltESPFastSteppingHelixPropagatorAny");
       psd1.add<bool>("EnableGEMMeasurement", false);
-      psd1.add<edm::InputTag>("GEMRecSegmentLabel", edm::InputTag("gemRecHits"));
+      psd1.add<edm::InputTag>("GEMRecSegmentLabel", edm::InputTag("hltGemSegments"));
       psd1.add<bool>("EnableME0Measurement", false);
-      psd1.add<edm::InputTag>("ME0RecSegmentLabel", edm::InputTag("me0Segments"));
+      psd1.add<edm::InputTag>("ME0RecSegmentLabel", edm::InputTag(""));
       psd1.add<bool>("EnableCSCMeasurement", true);
       psd0.add<edm::ParameterSetDescription>("FilterParameters", psd1);
     }
