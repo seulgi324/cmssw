@@ -73,7 +73,6 @@ MuonSeedGenerator::~MuonSeedGenerator() {
 void MuonSeedGenerator::produce(edm::Event& event, const edm::EventSetup& eSetup) {
   // create the pointer to the Seed container
   auto output = std::make_unique<TrajectorySeedCollection>();
-
   edm::ESHandle<MagneticField> field = eSetup.getHandle(magFieldToken);
   theSeedFinder->setBField(&*field);
 
@@ -111,10 +110,10 @@ void MuonSeedGenerator::fillDescriptions(edm::ConfigurationDescriptions& descrip
   desc.add<bool>("scaleDT", true);
   desc.add<edm::InputTag>("CSCRecSegmentLabel", edm::InputTag("cscSegments"));
   desc.add<edm::InputTag>("DTRecSegmentLabel", edm::InputTag("dt4DSegments"));
-  desc.add<edm::InputTag>("ME0RecSegmentLabel", edm::InputTag("me0Segments"));
+  desc.add<edm::InputTag>("GEMRecSegmentLabel", edm::InputTag("gemSegments"));
   desc.add<bool>("EnableDTMeasurement", true);
   desc.add<bool>("EnableCSCMeasurement", true);
-  desc.add<bool>("EnableME0Measurement", false);
+  desc.add<bool>("EnableGEMMeasurement", true);
   desc.add<std::vector<double>>("crackEtas", {0.2, 1.6, 1.7});
   desc.add<double>("crackWindow", 0.04);
   desc.add<double>("deltaPhiSearchWindow", 0.25);

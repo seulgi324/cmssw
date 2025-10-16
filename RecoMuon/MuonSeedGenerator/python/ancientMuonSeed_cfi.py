@@ -11,10 +11,10 @@ ancientMuonSeed = _mod.muonSeedGenerator.clone(
                                  scaleDT = True,
                                  CSCRecSegmentLabel = "cscSegments",
                                  DTRecSegmentLabel  = "dt4DSegments",
-                                 ME0RecSegmentLabel = "me0Segments",
+                                 GEMRecSegmentLabel = "gemSegments",
                                  EnableDTMeasurement = True,
                                  EnableCSCMeasurement = True,
-                                 EnableME0Measurement = False,
+                                 EnableGEMMeasurement = False, 
                                  # places where it's OK to have single-segment seeds
                                  crackEtas = [0.2, 1.6, 1.7],
                                  crackWindow = 0.04,
@@ -25,7 +25,8 @@ ancientMuonSeed = _mod.muonSeedGenerator.clone(
 
 # phase2 ME0
 from Configuration.Eras.Modifier_phase2_muon_cff import phase2_muon
-phase2_muon.toModify(ancientMuonSeed, EnableME0Measurement = True)
+phase2_muon.toModify(ancientMuonSeed, EnableGEMMeasurement = False)
+
 # phase2 GE0
 from Configuration.Eras.Modifier_phase2_GE0_cff import phase2_GE0
-phase2_GE0.toModify(ancientMuonSeed, EnableME0Measurement = False)
+phase2_GE0.toModify(ancientMuonSeed, EnableGEMMeasurement = True)

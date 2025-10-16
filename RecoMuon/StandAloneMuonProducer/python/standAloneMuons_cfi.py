@@ -35,7 +35,7 @@ standAloneMuons = cms.EDProducer(
             EnableRPCMeasurement = cms.bool(True),
             RPCRecSegmentLabel = cms.InputTag("rpcRecHits"),
             EnableGEMMeasurement = cms.bool(False),
-            GEMRecSegmentLabel = cms.InputTag("gemRecHits"),
+            GEMRecSegmentLabel = cms.InputTag("gemSegments"),
             EnableME0Measurement = cms.bool(False),
             ME0RecSegmentLabel = cms.InputTag("me0Segments"),
             NumberOfSigma = cms.double(3.0),
@@ -61,7 +61,7 @@ standAloneMuons = cms.EDProducer(
             EnableRPCMeasurement = cms.bool(True),
             RPCRecSegmentLabel = cms.InputTag("rpcRecHits"),
             EnableGEMMeasurement = cms.bool(False),
-            GEMRecSegmentLabel = cms.InputTag("gemRecHits"),
+            GEMRecSegmentLabel = cms.InputTag("gemSegments"),
             EnableME0Measurement = cms.bool(False),
             ME0RecSegmentLabel = cms.InputTag("me0Segments"),
             NumberOfSigma = cms.double(3.0),
@@ -114,14 +114,13 @@ run3_GEM.toModify( standAloneMuons, STATrajBuilderParameters = dict(
     FilterParameters = _enableGEMMeasurement, 
     BWFilterParameters = _enableGEMMeasurement ) )
 
-_enableME0Measurement = dict( EnableME0Measurement = True )
 from Configuration.Eras.Modifier_phase2_muon_cff import phase2_muon
 phase2_muon.toModify( standAloneMuons, STATrajBuilderParameters = dict(
-    FilterParameters = _enableME0Measurement,
-    BWFilterParameters = _enableME0Measurement ) )
+    FilterParameters = _enableGEMMeasurement,
+    BWFilterParameters = _enableGEMMeasurement ) )
 
-_disableME0Measurement = dict( EnableME0Measurement = False )
-from Configuration.Eras.Modifier_phase2_GE0_cff import phase2_GE0
-phase2_GE0.toModify( standAloneMuons, STATrajBuilderParameters = dict(
-    FilterParameters = _disableME0Measurement,
-    BWFilterParameters = _disableME0Measurement ) )
+#_disableGEMMeasurement = dict( EnableGEMMeasurement = False )
+#from Configuration.Eras.Modifier_phase2_GE0_cff import phase2_GE0
+#phase2_GE0.toModify( standAloneMuons, STATrajBuilderParameters = dict(
+#    FilterParameters = _disableGEMMeasurement,
+#    BWFilterParameters = _disableGEMMeasurement ) )
