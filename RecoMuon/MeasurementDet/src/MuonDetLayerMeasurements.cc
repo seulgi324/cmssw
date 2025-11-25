@@ -112,10 +112,17 @@ MuonRecHitContainer MuonDetLayerMeasurements::recHits(const GeomDet* geomDet, co
       //std::cout << "Segments found in chamber: " << std::distance(range.first, range.second) << std::endl;
 
       // Create the MuonTransientTrackingRecHit
-      for (CSCSegmentCollection::const_iterator segmentIt = range.first; segmentIt != range.second; ++segmentIt)
-        for (const auto& rechit : segmentIt->specificRecHits()) {
-          result.push_back(MuonTransientTrackingRecHit::specificBuild(geomDet, &rechit));
-        }
+      for (CSCSegmentCollection::const_iterator rechit = range.first; rechit != range.second; ++rechit){
+	CSCDetId id_(rechit->cscDetId());
+	//std::cout << "CSCInfo: " << id_.station() << "/" << id_.ring() << std::endl;
+	//if (id_.station() == 1 && id_.ring() == 1) continue;
+        result.push_back(MuonTransientTrackingRecHit::specificBuild(geomDet, &*rechit));
+      }
+      //for (CSCSegmentCollection::const_iterator segmentIt = range.first; segmentIt != range.second; ++segmentIt)
+      //  //for (const auto& rechit : segmentIt->specificRecHits()) {
+      //  for (const auto& rechit : segmentIt->recHits()) {
+      //    result.push_back(MuonTransientTrackingRecHit::specificBuild(geomDet, rechit));
+      //  }
     }
     //std::cout << "Number of CSC rechits: " << result.size() << std::endl;
     //std::cout << "---------------------------------------------\n";
@@ -153,6 +160,9 @@ MuonRecHitContainer MuonDetLayerMeasurements::recHits(const GeomDet* geomDet, co
 
       // Create the MuonTransientTrackingRecHit
       for (GEMSegmentCollection::const_iterator recHit = range.first; recHit != range.second; ++recHit) {
+        GEMDetId id_(recHit->gemDetId());
+        //std::cout << "GEMInfo: " << id_.station() << "/" << id_.ring() << std::endl;
+	//if (id_.station() == 0) continue;
         result.push_back(MuonTransientTrackingRecHit::specificBuild(geomDet, &*recHit));
       }
 
