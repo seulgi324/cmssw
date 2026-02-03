@@ -2,9 +2,20 @@
 <use name="Geometry/GEMGeometryBuilder"/>
 <use name="Geometry/Records"/>
 <use name="FWCore/Framework"/>
+<use  name="FWCore/Utilities"/>
+<use  name="FWCore/MessageLogger"/>
+<use  name="SimDataFormats/Track"/>
+<use  name="DataFormats/MuonDetId"/>
+<use  name="CommonTools/UtilAlgos"/>
+<use  name="CommonTools/Utils"/>
+
 <flags EDM_PLUGIN="1"/>
 <library file="GEMGeometryAnalyzer.cc" name="GEMGeometryAnalyzer">
 </library>
 
 <library file="ME0GeometryAnalyzer.cc" name="ME0GeometryAnalyzer">
 </library>
+<export>
+<library file="MyGE0Analyzer.cc" name="MyGE0Analyzer">
+</library>
+</export>
