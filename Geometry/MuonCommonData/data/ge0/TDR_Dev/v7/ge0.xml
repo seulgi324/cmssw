@@ -62,7 +62,7 @@
 
     <Constant name="dxTop"  value="(([rPos]+[dzInL])*[slope]-[tol])"/>
     <Constant name="dx11"   value="([dxTop]-[slope]*([dzInL]-[z10L]+[dzS1]))"/>
-    <Constant name="dx12"   value="([dxTop]-[slope]*([dzInL]-[z10L]+[dzS1]))"/>
+    <Constant name="dx12"   value="([dxTop]-[slope]*([dzInL]-[z10L]-[dzS1]))"/>
     <Constant name="dx21"   value="([dxTop]-[slope]*([dzInL]-[z20L]+[dzS2]))"/>
     <Constant name="dx22"   value="([dxTop]-[slope]*([dzInL]-[z20L]-[dzS2]))"/>
     <Constant name="dx31"   value="([dxTop]-[slope]*([dzInL]-[z30L]+[dzS3]))"/>
@@ -77,6 +77,8 @@
     <Constant name="dx72"   value="([dxTop]-[slope]*([dzInL]-[z70L]-[dzS7]))"/>
     <Constant name="dx81"   value="([dxTop]-[slope]*([dzInL]-[z80L]+[dzS8]))"/>
     <Constant name="dx82"   value="([dxTop]-[slope]*([dzInL]-[z80L]-[dzS8]))"/>
+    <Constant name="zero"   value="0.0*fm"/>
+
   </ConstantsSection>
 
   <SolidSection label="ge0.xml">
@@ -91,14 +93,38 @@
     <Trd1 name="GE0Read" dz="[dZ]" dy1="[tRead]"  dy2="[tRead]"  dx1="[xBot]" dx2="[xTop]" />
     <Trd1 name="GE0Top"  dz="[dZ]" dy1="[tTop]"   dy2="[tTop]"   dx1="[xBot]" dx2="[xTop]" />
   
-  <Trd1 name="GHA001" dz="[dzS1]" dy1="[tSense]" dy2="[tSense]" dx1="[dx11]" dx2="[dx12]" />
-  <Trd1 name="GHA002" dz="[dzS2]" dy1="[tSense]" dy2="[tSense]" dx1="[dx21]" dx2="[dx22]" />
-  <Trd1 name="GHA003" dz="[dzS3]" dy1="[tSense]" dy2="[tSense]" dx1="[dx31]" dx2="[dx32]" />
-  <Trd1 name="GHA004" dz="[dzS4]" dy1="[tSense]" dy2="[tSense]" dx1="[dx41]" dx2="[dx42]" />
-  <Trd1 name="GHA005" dz="[dzS5]" dy1="[tSense]" dy2="[tSense]" dx1="[dx51]" dx2="[dx52]" />
-  <Trd1 name="GHA006" dz="[dzS6]" dy1="[tSense]" dy2="[tSense]" dx1="[dx61]" dx2="[dx62]" />
-  <Trd1 name="GHA007" dz="[dzS7]" dy1="[tSense]" dy2="[tSense]" dx1="[dx71]" dx2="[dx72]" />
-  <Trd1 name="GHA008" dz="[dzS8]" dy1="[tSense]" dy2="[tSense]" dx1="[dx81]" dx2="[dx82]" />
+    <Trd1 name="GHA001_raw" dz="[dzS1]" dy1="[tSense]" dy2="[tSense]" dx1="[dx11]" dx2="[dx12]" />
+    <Trd1 name="GHA002_raw" dz="[dzS2]" dy1="[tSense]" dy2="[tSense]" dx1="[dx21]" dx2="[dx22]" />
+    <Trd1 name="GHA003" dz="[dzS3]" dy1="[tSense]" dy2="[tSense]" dx1="[dx31]" dx2="[dx32]" />
+    <Trd1 name="GHA004" dz="[dzS4]" dy1="[tSense]" dy2="[tSense]" dx1="[dx41]" dx2="[dx42]" />
+    <Trd1 name="GHA005" dz="[dzS5]" dy1="[tSense]" dy2="[tSense]" dx1="[dx51]" dx2="[dx52]" />
+    <Trd1 name="GHA006" dz="[dzS6]" dy1="[tSense]" dy2="[tSense]" dx1="[dx61]" dx2="[dx62]" />
+    <Trd1 name="GHA007" dz="[dzS7]" dy1="[tSense]" dy2="[tSense]" dx1="[dx71]" dx2="[dx72]" />
+    <Trd1 name="GHA008" dz="[dzS8]" dy1="[tSense]" dy2="[tSense]" dx1="[dx81]" dx2="[dx82]" />
+
+    <Box name="Eta1Wing" dz="[dzS1]" dy="[tSense]" dx="([dx12]-[dx11])/2"/>
+    <Box name="Eta2Wing" dz="[dzS2]" dy="[tSense]" dx="([dx22]-[dx21])/2"/>
+
+    <SubtractionSolid name="GHA001_left">
+      <rSolid name="GHA001_raw"/>
+      <rSolid name="Eta1Wing"/>
+      <Translation x="-([dx11]+[dx12])/2" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
+    <SubtractionSolid name="GHA002_left">
+      <rSolid name="GHA002_raw"/>
+      <rSolid name="Eta2Wing"/>
+      <Translation x="-([dx21]+[dx22])/2" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
+    <SubtractionSolid name="GHA001">
+      <rSolid name="GHA001_left"/>
+      <rSolid name="Eta1Wing"/>
+      <Translation x="([dx11]+[dx12])/2" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
+    <SubtractionSolid name="GHA002">
+      <rSolid name="GHA002_left"/>
+      <rSolid name="Eta2Wing"/>
+      <Translation x="([dx21]+[dx22])/2" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
   </SolidSection>
 
   <LogicalPartSection label="ge0.xml">
