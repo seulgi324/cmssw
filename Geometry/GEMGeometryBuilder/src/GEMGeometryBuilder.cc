@@ -280,6 +280,12 @@ GEMEtaPartition* GEMGeometryBuilder::buildEtaPartition(DDFilteredView& fv, GEMDe
 #endif
   // EtaPartition specific parameter (size)
   std::vector<double> dpar = fv.logicalPart().solid().parameters();
+  
+  if (dpar.size() == 0) {
+    const DDBooleanSolid bs1(fv.logicalPart().solid());
+    const DDBooleanSolid bs(bs1.solidA());
+    dpar = bs.solidA().parameters();
+  }
 
   double be = convertMmToCm(dpar[4]);  // half bottom edge
   double te = convertMmToCm(dpar[8]);  // half top edge
