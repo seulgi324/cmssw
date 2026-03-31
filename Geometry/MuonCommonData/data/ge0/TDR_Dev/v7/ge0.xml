@@ -77,21 +77,23 @@
     <Constant name="dx72"   value="([dxTop]-[slope]*([dzInL]-[z70L]-[dzS7]))"/>
     <Constant name="dx81"   value="([dxTop]-[slope]*([dzInL]-[z80L]+[dzS8]))"/>
     <Constant name="dx82"   value="([dxTop]-[slope]*([dzInL]-[z80L]-[dzS8]))"/>
+    <Constant name="dxWing" value="1.4*cm"/>
+    <Constant name="dxTopR" value="[dxTop]-[dxWing]"/>
     <Constant name="zero"   value="0.0*fm"/>
 
   </ConstantsSection>
 
   <SolidSection label="ge0.xml">
     <Tubs name="GE0" rMin="[rMin]" rMax="[rMax]" dz="[dzGE0] " startPhi="0*deg" deltaPhi="360*deg"/>
-    <Trd1 name="GE0Box" dz="[dZ]" dy1="[dzGE0]" dy2="[dzGE0]" dx1="[xBot]" dx2="[xTop]" />
-    <Trd1 name="GE0L"    dz="[dZ]" dy1="[tSense]" dy2="[tSense]" dx1="[xBot]" dx2="[xTop]" />
-    <Trd1 name="GE0Base" dz="[dZ]" dy1="[tBase]"  dy2="[tBase]"  dx1="[xBot]" dx2="[xTop]" />
-    <Trd1 name="GE0Gas1" dz="[dZ]" dy1="[tGas1]"  dy2="[tGas1]"  dx1="[xBot]" dx2="[xTop]" />
-    <Trd1 name="GE0Gas2" dz="[dZ]" dy1="[tGas2]"  dy2="[tGas2]"  dx1="[xBot]" dx2="[xTop]" />
-    <Trd1 name="GE0Gas3" dz="[dZ]" dy1="[tGas3]"  dy2="[tGas3]"  dx1="[xBot]" dx2="[xTop]" />
-    <Trd1 name="GE0Foil" dz="[dZ]" dy1="[tFoil]"  dy2="[tFoil]"  dx1="[xBot]" dx2="[xTop]" />
-    <Trd1 name="GE0Read" dz="[dZ]" dy1="[tRead]"  dy2="[tRead]"  dx1="[xBot]" dx2="[xTop]" />
-    <Trd1 name="GE0Top"  dz="[dZ]" dy1="[tTop]"   dy2="[tTop]"   dx1="[xBot]" dx2="[xTop]" />
+    <Trd1 name="GE0Box_raw" dz="[dZ]" dy1="[dzGE0]" dy2="[dzGE0]" dx1="[xBot]" dx2="[xTop]" />
+    <Trd1 name="GE0L_raw"    dz="[dZ]" dy1="[tSense]" dy2="[tSense]" dx1="[xBot]" dx2="[xTop]" />
+    <Trd1 name="GE0Base_raw" dz="[dZ]" dy1="[tBase]"  dy2="[tBase]"  dx1="[xBot]" dx2="[xTop]" />
+    <Trd1 name="GE0Gas1_raw" dz="[dZ]" dy1="[tGas1]"  dy2="[tGas1]"  dx1="[xBot]" dx2="[xTop]" />
+    <Trd1 name="GE0Gas2_raw" dz="[dZ]" dy1="[tGas2]"  dy2="[tGas2]"  dx1="[xBot]" dx2="[xTop]" />
+    <Trd1 name="GE0Gas3_raw" dz="[dZ]" dy1="[tGas3]"  dy2="[tGas3]"  dx1="[xBot]" dx2="[xTop]" />
+    <Trd1 name="GE0Foil_raw" dz="[dZ]" dy1="[tFoil]"  dy2="[tFoil]"  dx1="[xBot]" dx2="[xTop]" />
+    <Trd1 name="GE0Read_raw" dz="[dZ]" dy1="[tRead]"  dy2="[tRead]"  dx1="[xBot]" dx2="[xTop]" />
+    <Trd1 name="GE0Top_raw"  dz="[dZ]" dy1="[tTop]"   dy2="[tTop]"   dx1="[xBot]" dx2="[xTop]" />
   
     <Trd1 name="GHA001_raw" dz="[dzS1]" dy1="[tSense]" dy2="[tSense]" dx1="[dx11]" dx2="[dx12]" />
     <Trd1 name="GHA002_raw" dz="[dzS2]" dy1="[tSense]" dy2="[tSense]" dx1="[dx21]" dx2="[dx22]" />
@@ -102,28 +104,129 @@
     <Trd1 name="GHA007" dz="[dzS7]" dy1="[tSense]" dy2="[tSense]" dx1="[dx71]" dx2="[dx72]" />
     <Trd1 name="GHA008" dz="[dzS8]" dy1="[tSense]" dy2="[tSense]" dx1="[dx81]" dx2="[dx82]" />
 
-    <Box name="Eta1Wing" dz="[dzS1]" dy="[tSense]" dx="([dx12]-[dx11])/2"/>
-    <Box name="Eta2Wing" dz="[dzS2]" dy="[tSense]" dx="([dx22]-[dx21])/2"/>
+    <Box name="GE0BoxWing"  dz="[dZ]" dy="[dzGE0]"  dx="[dxWing]" />
+    <Box name="GE0LWing"    dz="[dZ]" dy="[tSense]" dx="[dxWing]" />
+    <Box name="GE0BaseWing" dz="[dZ]" dy="[tBase]"  dx="[dxWing]" />
+    <Box name="GE0Gas1Wing" dz="[dZ]" dy="[tGas1]"  dx="[dxWing]" />
+    <Box name="GE0Gas2Wing" dz="[dZ]" dy="[tGas2]"  dx="[dxWing]" />
+    <Box name="GE0Gas3Wing" dz="[dZ]" dy="[tGas3]"  dx="[dxWing]" />
+    <Box name="GE0FoilWing" dz="[dZ]" dy="[tFoil]"  dx="[dxWing]" />
+    <Box name="GE0ReadWing" dz="[dZ]" dy="[tRead]"  dx="[dxWing]" />
+    <Box name="GE0TopWing"  dz="[dZ]" dy="[tTop]"   dx="[dxWing]" />
 
-    <SubtractionSolid name="GHA001_left">
-      <rSolid name="GHA001_raw"/>
+    <Box name="Eta1Wing" dz="[dzS1]" dy="[tSense]" dx="[dxWing]"/>
+    <Box name="Eta2Wing" dz="[dzS2]" dy="[tSense]" dx="[dxWing]"/>
+
+    <UnionSolid name="GE0BoxWings">
+      <rSolid name="GE0BoxWing"/>
+      <rSolid name="GE0BoxWing"/>
+      <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
+    </UnionSolid>
+    <UnionSolid name="GE0LWings">
+      <rSolid name="GE0LWing"/>
+      <rSolid name="GE0LWing"/>
+      <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
+    </UnionSolid>
+    <UnionSolid name="GE0BaseWings">
+      <rSolid name="GE0BaseWing"/>
+      <rSolid name="GE0BaseWing"/>
+      <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
+    </UnionSolid>
+    <UnionSolid name="GE0Gas1Wings">
+      <rSolid name="GE0Gas1Wing"/>
+      <rSolid name="GE0Gas1Wing"/>
+      <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
+    </UnionSolid>
+    <UnionSolid name="GE0Gas2Wings">
+      <rSolid name="GE0Gas2Wing"/>
+      <rSolid name="GE0Gas2Wing"/>
+      <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
+    </UnionSolid>
+    <UnionSolid name="GE0Gas3Wings">
+      <rSolid name="GE0Gas3Wing"/>
+      <rSolid name="GE0Gas3Wing"/>
+      <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
+    </UnionSolid>
+    <UnionSolid name="GE0FoilWings">
+      <rSolid name="GE0FoilWing"/>
+      <rSolid name="GE0FoilWing"/>
+      <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
+    </UnionSolid>
+    <UnionSolid name="GE0ReadWings">
+      <rSolid name="GE0ReadWing"/>
+      <rSolid name="GE0ReadWing"/>
+      <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
+    </UnionSolid>
+    <UnionSolid name="GE0TopWings">
+      <rSolid name="GE0TopWing"/>
+      <rSolid name="GE0TopWing"/>
+      <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
+    </UnionSolid>
+    <UnionSolid name="Eta1Wings">
       <rSolid name="Eta1Wing"/>
-      <Translation x="-([dx11]+[dx12])/2" y="[zero]" z="[zero]"/>
-    </SubtractionSolid>
-    <SubtractionSolid name="GHA002_left">
-      <rSolid name="GHA002_raw"/>
+      <rSolid name="Eta1Wing"/>
+      <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
+    </UnionSolid>
+    <UnionSolid name="Eta2Wings">
       <rSolid name="Eta2Wing"/>
-      <Translation x="-([dx21]+[dx22])/2" y="[zero]" z="[zero]"/>
+      <rSolid name="Eta2Wing"/>
+      <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
+    </UnionSolid>
+
+    <SubtractionSolid name="GE0Box">
+      <rSolid name="GE0Box_raw"/>
+      <rSolid name="GE0BoxWings"/>
+      <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
+    <SubtractionSolid name="GE0L">
+      <rSolid name="GE0L_raw"/>
+      <rSolid name="GE0LWings"/>
+      <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
+    <SubtractionSolid name="GE0Base">
+      <rSolid name="GE0Base_raw"/>
+      <rSolid name="GE0BaseWings"/>
+      <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
+    <SubtractionSolid name="GE0Gas1">
+      <rSolid name="GE0Gas1_raw"/>
+      <rSolid name="GE0Gas1Wings"/>
+      <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
+    <SubtractionSolid name="GE0Gas2">
+      <rSolid name="GE0Gas2_raw"/>
+      <rSolid name="GE0Gas2Wings"/>
+      <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
+    <SubtractionSolid name="GE0Gas3">
+      <rSolid name="GE0Gas3_raw"/>
+      <rSolid name="GE0Gas3Wings"/>
+      <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
+    <SubtractionSolid name="GE0Foil">
+      <rSolid name="GE0Foil_raw"/>
+      <rSolid name="GE0FoilWings"/>
+      <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
+    <SubtractionSolid name="GE0Read">
+      <rSolid name="GE0Read_raw"/>
+      <rSolid name="GE0ReadWings"/>
+      <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
+    </SubtractionSolid>
+    <SubtractionSolid name="GE0Top">
+      <rSolid name="GE0Top_raw"/>
+      <rSolid name="GE0TopWings"/>
+      <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
     </SubtractionSolid>
     <SubtractionSolid name="GHA001">
-      <rSolid name="GHA001_left"/>
-      <rSolid name="Eta1Wing"/>
-      <Translation x="([dx11]+[dx12])/2" y="[zero]" z="[zero]"/>
+      <rSolid name="GHA001_raw"/>
+      <rSolid name="Eta1Wings"/>
+      <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
     </SubtractionSolid>
     <SubtractionSolid name="GHA002">
-      <rSolid name="GHA002_left"/>
-      <rSolid name="Eta2Wing"/>
-      <Translation x="([dx21]+[dx22])/2" y="[zero]" z="[zero]"/>
+      <rSolid name="GHA002_raw"/>
+      <rSolid name="Eta2Wings"/>
+      <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
     </SubtractionSolid>
   </SolidSection>
 
