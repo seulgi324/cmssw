@@ -170,6 +170,22 @@ namespace edm {
     }
     AR_WATCH_USING_METHOD_0(watchPostEventSetupModulesConstruction)
 
+    using PreModulesAndSourceConstruction = signalslot::Signal<void()>;
+    /// signal is emitted before the parallel section to construct ED modules and source
+    PreModulesAndSourceConstruction preModulesAndSourceConstructionSignal_;
+    void watchPreModulesAndSourceConstruction(PreModulesAndSourceConstruction::slot_type const& iSlot) {
+      preModulesAndSourceConstructionSignal_.connect(iSlot);
+    }
+    AR_WATCH_USING_METHOD_0(watchPreModulesAndSourceConstruction)
+
+    using PostModulesAndSourceConstruction = signalslot::Signal<void()>;
+    /// signal is emitted after the parallel section to construct ED modules and source
+    PostModulesAndSourceConstruction postModulesAndSourceConstructionSignal_;
+    void watchPostModulesAndSourceConstruction(PostModulesAndSourceConstruction::slot_type const& iSlot) {
+      postModulesAndSourceConstructionSignal_.connect(iSlot);
+    }
+    AR_WATCH_USING_METHOD_0(watchPostModulesAndSourceConstruction)
+
     using PreFinishSchedule = signalslot::Signal<void()>;
     /// signal is emitted before the call to EventSetup::finishSchedule
     PreFinishSchedule preFinishScheduleSignal_;
@@ -420,6 +436,40 @@ namespace edm {
     PostCloseFile postCloseFileSignal_;
     void watchPostCloseFile(PostCloseFile::slot_type const& iSlot) { postCloseFileSignal_.connect_front(iSlot); }
     AR_WATCH_USING_METHOD_1(watchPostCloseFile)
+
+    /// signal is emitted before the framework asks OutputModules to open output files
+    // Note an OutputModule may decide to close and open files by itself, those are not covered by this signal
+    typedef signalslot::Signal<void()> PreOpenOutputFiles;
+    PreOpenOutputFiles preOpenOutputFilesSignal_;
+    void watchPreOpenOutputFiles(PreOpenOutputFiles::slot_type const& iSlot) {
+      preOpenOutputFilesSignal_.connect(iSlot);
+    }
+    AR_WATCH_USING_METHOD_1(watchPreOpenOutputFiles)
+
+    /// signal is emitted after the framework asks OutputModules to open output files
+    typedef signalslot::Signal<void()> PostOpenOutputFiles;
+    PostOpenOutputFiles postOpenOutputFilesSignal_;
+    void watchPostOpenOutputFiles(PostOpenOutputFiles::slot_type const& iSlot) {
+      postOpenOutputFilesSignal_.connect_front(iSlot);
+    }
+    AR_WATCH_USING_METHOD_1(watchPostOpenOutputFiles)
+
+    /// signal is emitted before the framework asks OutputModules to close output files
+    // Note an OutputModule may decide to close and open files by itself, those are not covered by this signal
+    typedef signalslot::Signal<void()> PreCloseOutputFiles;
+    PreCloseOutputFiles preCloseOutputFilesSignal_;
+    void watchPreCloseOutputFiles(PreCloseOutputFiles::slot_type const& iSlot) {
+      preCloseOutputFilesSignal_.connect(iSlot);
+    }
+    AR_WATCH_USING_METHOD_1(watchPreCloseOutputFiles)
+
+    /// signal is emitted after the framework asks OutputModules to close output files
+    typedef signalslot::Signal<void()> PostCloseOutputFiles;
+    PostCloseOutputFiles postCloseOutputFilesSignal_;
+    void watchPostCloseOutputFiles(PostCloseOutputFiles::slot_type const& iSlot) {
+      postCloseOutputFilesSignal_.connect_front(iSlot);
+    }
+    AR_WATCH_USING_METHOD_1(watchPostCloseOutputFiles)
 
     typedef signalslot::Signal<void(StreamContext const&, ModuleCallingContext const&)> PreModuleBeginStream;
     PreModuleBeginStream preModuleBeginStreamSignal_;
@@ -706,6 +756,22 @@ namespace edm {
       preSourceEarlyTerminationSignal_.connect(iSlot);
     }
     AR_WATCH_USING_METHOD_1(watchPreSourceEarlyTermination)
+
+    /// signal is emitted before the ESModule is constructed
+    using PreESModuleConstruction = signalslot::Signal<void(eventsetup::ComponentDescription const&)>;
+    PreESModuleConstruction preESModuleConstructionSignal_;
+    void watchPreESModuleConstruction(PreESModuleConstruction::slot_type const& iSlot) {
+      preESModuleConstructionSignal_.connect(iSlot);
+    }
+    AR_WATCH_USING_METHOD_1(watchPreESModuleConstruction)
+
+    /// signal is emitted after the ESModule is constructed
+    using PostESModuleConstruction = signalslot::Signal<void(eventsetup::ComponentDescription const&)>;
+    PostESModuleConstruction postESModuleConstructionSignal_;
+    void watchPostESModuleConstruction(PostESModuleConstruction::slot_type const& iSlot) {
+      postESModuleConstructionSignal_.connect(iSlot);
+    }
+    AR_WATCH_USING_METHOD_1(watchPostESModuleConstruction)
 
     /// signal is emitted after the ESModule is registered with EventSetupProvider
     using PostESModuleRegistration = signalslot::Signal<void(eventsetup::ComponentDescription const&)>;

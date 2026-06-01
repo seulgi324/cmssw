@@ -27,9 +27,10 @@
 #include "SimDataFormats/Associations/interface/LayerClusterToSimClusterAssociator.h"
 #include "SimDataFormats/Associations/interface/TICLAssociationMap.h"
 
+#include "DataFormats/Common/interface/RefProdVector.h"
 #include "DataFormats/Common/interface/MultiSpan.h"
 
-class PileupSummaryInfo;
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfoFwd.h"
 
 struct BarrelValidatorHistograms {
   BarrelVHistoProducerAlgoHistograms histoProducerAlgo;
@@ -74,9 +75,9 @@ protected:
   const bool doCaloParticlePlots_;
   const bool doCaloParticleSelection_;
   const bool doSimClustersPlots_;
-  edm::InputTag label_SimClustersPlots_, label_SimClustersLevel_;
+  std::string label_SimClustersPlots_, label_SimClustersLevel_;
   const bool doLayerClustersPlots_;
-  edm::InputTag label_layerClustersPlots_, label_LCToCPLinking_;
+  std::string label_layerClustersPlots_, label_LCToCPLinking_;
   std::vector<edm::InputTag> label_clustersmask;
 
   std::vector<edm::EDGetTokenT<reco::CaloClusterCollection>> labelToken;
@@ -94,8 +95,7 @@ protected:
   std::vector<edm::EDGetTokenT<ticl::RecoToSimCollectionWithSimClustersT<reco::CaloClusterCollection>>>
       associatorMapRtSim;
   std::unique_ptr<BarrelVHistoProducerAlgo> histoProducerAlgo_;
-  std::vector<edm::InputTag> barrel_hits_label_;
-  std::vector<edm::EDGetTokenT<std::vector<reco::PFRecHit>>> barrel_hits_tokens_;
+  edm::EDGetTokenT<edm::RefProdVector<reco::PFRecHitCollection>> hitsToken_;
   edm::EDGetTokenT<SimClusterToCaloParticleMap> scToCpMapToken_;
 
 private:

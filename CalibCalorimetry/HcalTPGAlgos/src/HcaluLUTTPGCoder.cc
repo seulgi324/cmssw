@@ -45,6 +45,8 @@ HcaluLUTTPGCoder::HcaluLUTTPGCoder()
       LUTGenerationMode_{},
       overrideFGHF_{},
       FG_HF_thresholds_{},
+      overrideHBLLP_{},
+      HB_LLP_thresholds_{},
       bitToMask_{},
       firstHBEta_{},
       lastHBEta_{},
@@ -83,7 +85,9 @@ void HcaluLUTTPGCoder::init(const HcalTopology* top, const HcalElectronicsMap* e
   delay_ = delay;
   LUTGenerationMode_ = true;
   overrideFGHF_ = false;
-  FG_HF_thresholds_ = {0, 0};
+  FG_HF_thresholds_.fill(0);
+  overrideHBLLP_ = false;
+  HB_LLP_thresholds_.fill(0);
   bitToMask_ = 0;
   allLinear_ = false;
   contain1TSHB_ = false;
@@ -439,6 +443,37 @@ void HcaluLUTTPGCoder::update(const HcalDbService& conditions) {
     }
   }
 
+  // Read auxi2 field of TPParameters to get HB LLP bit energy thresholds
+  const uint32_t aux2 = tpparameters->getAuxi2();
+  unsigned bit12_energy, bit13_energy, bit14_energy, bit15_energy;
+
+  // Auxi2 is empty OR the switch is open: Read from configuration parameters
+  if (overrideHBLLP_ || (aux2 == 0u)) {
+    bit12_energy = HB_LLP_thresholds_[0];
+    bit13_energy = HB_LLP_thresholds_[1];
+    bit14_energy = HB_LLP_thresholds_[2];
+    bit15_energy = HB_LLP_thresholds_[3];
+  } else {
+    // Each energy threshold is an 8-bit word
+    bit12_energy = aux2 & 0xFFu;
+    bit13_energy = (aux2 >> 8) & 0xFFu;
+    bit14_energy = (aux2 >> 16) & 0xFFu;
+    bit15_energy = (aux2 >> 24) & 0xFFu;
+  }
+
+  bool is2018OrLater = topo_->triggerMode() >= HcalTopologyMode::TriggerMode_2018 or
+                       topo_->triggerMode() == HcalTopologyMode::TriggerMode_2018legacy;
+
+  // The number of pedestal widths for ZS is packed into the third byte
+  // of the 32 bit auxi1 variable from HcalTPParameters
+  // Assume a fixed-point SF of 1 / 16 to convert to final number of widths
+  float nPedWidthsForZSfromDB = ((aux1 & 0xFF0000u) >> 16) / 16.0;
+
+  // If overriding with corresponding param in python or the extracted value from third byte of HcalTPParameters auxi1 is 0,
+  // use the param from python. Otherwise, take the value as extracted from DB
+  float nPedWidthsForZSfinal =
+      (overrideDBnPedWidthsForZS_ or nPedWidthsForZSfromDB == 0) ? nPedWidthsForZS_ : nPedWidthsForZSfromDB;
+
   for (const auto& id : metadata->getAllChannels()) {
     if (id.det() == DetId::Hcal and topo_->valid(id)) {
       HcalDetId cell(id);
@@ -451,27 +486,18 @@ void HcaluLUTTPGCoder::update(const HcalDbService& conditions) {
       const HcalQIEShape* shape = conditions.getHcalShape(cell);
       HcalCoderDb coder(*channelCoder, *shape);
       const HcalLutMetadatum* meta = metadata->getValues(cell);
-
-      // defaults for energy requirement for bits 12-15 are high / low to avoid FG bit 0-4 being set when not intended
-      unsigned int bit12_energy = 0;
-      unsigned int bit13_energy = 0;
-      unsigned int bit14_energy = 999;
-      unsigned int bit15_energy = 999;
-
-      bool is2018OrLater = topo_->triggerMode() >= HcalTopologyMode::TriggerMode_2018 or
-                           topo_->triggerMode() == HcalTopologyMode::TriggerMode_2018legacy;
-      if (is2018OrLater or topo_->dddConstants()->isPlan1(cell)) {
-        bit12_energy = 16;  // depths 1,2 max energy
-        bit13_energy = 80;  // depths 3+ min energy
-        bit14_energy = 64;  // prompt min energy
-        bit15_energy = 64;  // delayed min energy
-      }
-
       int lutId = getLUTId(cell);
       Lut& lut = inputLUT_[lutId];
       float ped = 0;
+      float pedwidth = 0;
       float gain = 0;
       uint32_t status = 0;
+
+      const HcalCalibrationWidths& calibrationWidths = conditions.getHcalCalibrationWidths(cell);
+      for (auto capId : {0, 1, 2, 3}) {
+        pedwidth += calibrationWidths.effpedestal(capId);
+      }
+      pedwidth /= 4.0;
 
       if (LUTGenerationMode_) {
         const HcalCalibrations& calibrations = conditions.getHcalCalibrations(cell);
@@ -565,17 +591,22 @@ void HcaluLUTTPGCoder::update(const HcalDbService& conditions) {
               }
             }
             if (allLinear_)
-              lut[adc] = (LutElement)std::min(
-                  std::max(0,
-                           int((adc2fC(adc) - ped) * gain * rcalib * nonlinearityCorrection * containmentCorrection /
-                               linearLSB / cosh_ieta(cell.ietaAbs(), cell.depth(), HcalEndcap))),
-                  MASK);
+              lut[adc] =
+                  adc2fC(adc) - (ped + nPedWidthsForZSfinal * pedwidth) <= 0
+                      ? 0
+                      : (LutElement)std::min(std::max(0,
+                                                      int((adc2fC(adc) - ped) * gain * rcalib * nonlinearityCorrection *
+                                                          containmentCorrection / linearLSB /
+                                                          cosh_ieta(cell.ietaAbs(), cell.depth(), HcalEndcap))),
+                                             MASK);
             else
               lut[adc] =
-                  (LutElement)std::min(std::max(0,
-                                                int((adc2fC(adc) - ped) * gain * rcalib * nonlinearityCorrection *
-                                                    containmentCorrection / nominalgain_ / granularity)),
-                                       MASK);
+                  adc2fC(adc) - (ped + nPedWidthsForZSfinal * pedwidth) <= 0
+                      ? 0
+                      : (LutElement)std::min(std::max(0,
+                                                      int((adc2fC(adc) - ped) * gain * rcalib * nonlinearityCorrection *
+                                                          containmentCorrection / nominalgain_ / granularity)),
+                                             MASK);
 
             unsigned int linearizedADC =
                 lut[adc];  // used for bits 12, 13, 14, 15 for Group 0 LUT for LLP time and depth bits that rely on linearized energies

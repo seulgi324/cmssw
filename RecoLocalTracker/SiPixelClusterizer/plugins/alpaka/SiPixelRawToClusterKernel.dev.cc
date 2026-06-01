@@ -310,6 +310,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
           dvgi.xx() = 0;
           dvgi.yy() = 0;
           dvgi.adc() = 0;
+          dvgi.rawADC() = 0;
 
           // initialise the errors
           err[gIndex].pixelErrors() = SiPixelErrorCompact{0, 0, 0, 0};
@@ -421,6 +422,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
           dvgi.xx() = globalPix.row;  // origin shifting by 1 0-159
           dvgi.yy() = globalPix.col;  // origin shifting by 1 0-415
           dvgi.adc() = sipixelconstants::getADC(ww);
+          dvgi.rawADC() = dvgi.adc();
           dvgi.pdigi() = ::pixelDetails::pack(globalPix.row, globalPix.col, dvgi.adc());
           dvgi.moduleId() = detId.moduleId;
           dvgi.rawIdArr() = rawId;
@@ -432,7 +434,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     // just for debugging
     template <typename TrackerTraits>
     struct ShowHitsModuleStart {
-      template <typename TAcc>
+      template <alpaka::concepts::Acc TAcc>
       ALPAKA_FN_ACC void operator()(const TAcc &acc, SiPixelClustersSoAView clus_view) const {
         if (cms::alpakatools::once_per_grid(acc)) {
           for (int i = 0; i < TrackerTraits::numberOfModules; i++)
@@ -661,7 +663,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         Queue &queue,
         const SiPixelClusterThresholds clusterThresholds,
         SiPixelDigisSoAView &digis_view,
-        const uint32_t numDigis) {
+        const uint32_t numDigis,
+        const uint32_t offsetBPIX2) {
       using namespace pixelClustering;
       using pixelTopology::Phase2;
       nDigis = numDigis;
@@ -744,7 +747,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       // last element holds the number of all clusters
       const auto clusModuleStartLastElement = cms::alpakatools::make_device_view(
           queue, clusters_d->const_view().clusModuleStart().data() + numberOfModules, 1u);
-      constexpr int startBPIX2 = pixelTopology::Phase2::layerStart[1];
+      const int startBPIX2 = offsetBPIX2;
       // element startBPIX2 hold the number of clusters until BPIX2
       const auto bpix2ClusterStart =
           cms::alpakatools::make_device_view(queue, clusters_d->const_view().clusModuleStart().data() + startBPIX2, 1u);

@@ -38,15 +38,46 @@ def processModuleTransition(moduleLabel, moduleType, moduleInfo, transitionType,
     Any missing field defaults to 0.
 
     Note: Entries with record names are excluded as they belong to EventSetup transition only.
+    
+    For the "source" module and "event" transition, sum all alloc records with the same 
+    run, lumi, and event number.
     """
     moduleKey = UniqueKey(moduleLabel, moduleType, "")
     moduleTransition[moduleKey] = {"cpptype": moduleType, "allocs": []}
-    for entry in moduleInfo:
-        # Only process entries that match the transition type AND don't have record names
-        # (entries with record names are EventSetup only)
-        if (entry.get("transition", None) == transitionType and
-            not ("record" in entry and "name" in entry["record"])):
-            moduleTransition[moduleKey]["allocs"].append(entry.get("alloc", {}))
+    
+    # Special handling for "source" module with "event" transition
+    if moduleLabel == "source" and transitionType == "event":
+        # Group entries by (run, lumi, event)
+        event_groups = {}
+        for entry in moduleInfo:
+            if (entry.get("transition", None) == transitionType and
+                not ("record" in entry and "name" in entry["record"])):
+                sync = entry.get("sync", {})
+                key = (sync.get("run", 0), sync.get("lumi", 0), sync.get("event", 0))
+                if key not in event_groups:
+                    event_groups[key] = []
+                event_groups[key].append(entry.get("alloc", {}))
+        
+        # Sum allocations for each event group
+        for event_key, allocs in event_groups.items():
+            summed_alloc = {
+                "added": sum(a.get("added", 0) for a in allocs),
+                "nAlloc": sum(a.get("nAlloc", 0) for a in allocs),
+                "nDealloc": sum(a.get("nDealloc", 0) for a in allocs),
+                "maxTemp": sum(a.get("maxTemp", 0) for a in allocs),
+                "max1Alloc": sum(a.get("max1Alloc", 0) for a in allocs)
+            }
+            moduleTransition[moduleKey]["allocs"].append(summed_alloc)
+    else:
+        # Original processing for other modules/transitions
+        for entry in moduleInfo:
+            # Only process entries that match the transition type AND don't have record names
+            # (entries with record names are EventSetup only)
+            if (entry.get("transition", None) == transitionType and
+                not ("record" in entry and "name" in entry["record"]) and
+                entry.get("activity") == "process"):
+                moduleTransition[moduleKey]["allocs"].append(entry.get("alloc", {}))
+    
     moduleTransition[moduleKey]["nTransitions"] = len(moduleTransition[moduleKey]["allocs"])
 
 def processESModuleTransition(moduleLabel, moduleType, moduleInfo, moduleTransition):
@@ -119,7 +150,6 @@ def formatToCircles(moduleTransitions):
         ]
     # The circles code uses the "events" field to normalize the values between files with different number of events
     # Here we set it to 1 for the total events because the total is already normalized per transition
-    doc["total"]["events"] = 1
     doc["total"]["label"] = "Job"
     doc["total"]["type"] = "Job"
     # Initialize totals for all transition types and allocation types
@@ -166,7 +196,7 @@ def formatToCircles(moduleTransitions):
                     nDealloc += alloc.get("nDealloc", 0)
                     maxTemp += alloc.get("maxTemp", 0)
                     max1Alloc += alloc.get("max1Alloc", 0)
-                ntransitions = moduleTransitions[transitionType][uniqueKey].get("nTransitions", 0)
+                ntransitions = moduleTransitions[transitionType][uniqueKey].get("nTransitions", -1)
                 # Normalize by number of transitions if > 0, otherwise use raw values
                 divisor = max(ntransitions, 1)  # Avoid division by zero
 
@@ -203,9 +233,9 @@ def formatToCircles(moduleTransitions):
         moduleLabel = key.moduleLabel
         # Look for the corresponding regular module key for event transitions
         eventKey = UniqueKey(moduleLabel, key.moduleType, "")
-        eventCount = moduleTransitions['event'].get(eventKey, {}).get("nTransitions", 0)
+        eventCount = moduleTransitions['event'].get(eventKey, {}).get("nTransitions", -1)
         # Set events to 1 if it's 0 to prevent NaNs in Circles visualization
-        module["events"] = max(eventCount, 1)
+        module["transitions"] = max(eventCount, 1)
         doc["modules"].append(module)
 
     return doc
@@ -237,8 +267,9 @@ def main(args):
             for moduleLabel, moduleInfo in doc["modules"].items():
                 processESModuleTransition(moduleLabel, moduleTypes[moduleLabel], moduleInfo, moduleTransition)
         else:
+            # Process the "source" module
+            processModuleTransition("source", moduleTypes["source"], doc["source"], transition, moduleTransition)
             # Regular transition processing
-            processModuleTransition("source", "PoolSource", doc["source"], transition, moduleTransition)
             for moduleLabel, moduleInfo in doc["modules"].items():
                 processModuleTransition(moduleLabel, moduleTypes[moduleLabel], moduleInfo, transition, moduleTransition)
         moduleTransitions[transition] = moduleTransition

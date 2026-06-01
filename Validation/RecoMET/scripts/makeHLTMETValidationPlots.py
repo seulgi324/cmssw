@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
 import argparse
 import numpy as np
 import hist
@@ -25,6 +26,11 @@ def createDir(adir):
     if not os.path.exists(adir):
         os.makedirs(adir)
     return adir
+
+def createIndexPHP(src, dest):
+    php_file = os.path.join(src, 'index.php')
+    if os.path.exists(php_file):
+        shutil.copy(php_file, dest)
 
 def checkRootDir(afile, adir):
     if not afile.Get(adir):
@@ -69,8 +75,12 @@ class Plotter:
         self._fig, self._ax = plt.subplots(figsize=(10, 10))
         self.fontsize = fontsize
         
-        hep.cms.text(' Phase-2 Simulation Preliminary', ax=self._ax, fontsize=fontsize)
-        hep.cms.lumitext(label + " | 14 TeV", ax=self._ax, fontsize=fontsize)
+        if hasattr(hep.cms, "lumitext"): # mplhep 0.4
+            hep.cms.text(' Phase-2 Simulation Preliminary', ax=self._ax, fontsize=fontsize)
+            hep.cms.lumitext(label + " | 14 TeV", ax=self._ax, fontsize=fontsize)
+        else:                            # mplhep >= 1.0
+            hep.cms.text(' Phase-2 Simulation Preliminary', lumi=label + " | 14 TeV", ax=self._ax, fontsize=fontsize)
+
         if grid_color:
             self._ax.grid(which='major', color=grid_color)
         
@@ -357,4 +367,5 @@ if __name__ == '__main__':
         checkRootDir(afile, turnon_dir)
         vars1Dtrigger = ('TurnOngMET', 'TurnOngMETLow', 'TurnOnhMET', 'TurnOnhMETLow')
         outdir = createDir(os.path.join(args.odir, trigger))
+        createIndexPHP(src=args.odir, dest=trigger)
         plot1Dtrigger(afile, turnon_dir, vars1Dtrigger, outdir=outdir, metType=METType[metType])

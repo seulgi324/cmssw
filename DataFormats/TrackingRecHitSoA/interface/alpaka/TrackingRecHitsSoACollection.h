@@ -16,6 +16,7 @@
 #include "HeterogeneousCore/AlpakaInterface/interface/CopyToHost.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/CopyToDevice.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/config.h"
+#include "HeterogeneousCore/AlpakaInterface/interface/concepts.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE::reco {
 
@@ -57,7 +58,7 @@ namespace cms::alpakatools {
 
   template <>
   struct CopyToDevice<::reco::TrackingRecHitHost> {
-    template <typename TQueue>
+    template <cms::alpakatools::NonCPUQueue TQueue>
     static auto copyAsync(TQueue& queue, reco::TrackingRecHitHost const& hostData) {
       using TDevice = typename alpaka::trait::DevType<TQueue>::type;
 
@@ -66,10 +67,7 @@ namespace cms::alpakatools {
       reco::TrackingRecHitDevice<TDevice> deviceData(queue, nHits, hostData.nModules());
 
       if (nHits == 0) {
-        std::memset(
-            deviceData.buffer().data(),
-            0,
-            alpaka::getExtentProduct(deviceData.buffer()) * sizeof(alpaka::Elem<reco::TrackingRecHitHost::Buffer>));
+        deviceData.zeroInitialise(queue);
         return deviceData;
       }
 

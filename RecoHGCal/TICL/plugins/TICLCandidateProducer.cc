@@ -31,6 +31,7 @@
 #include "RecoHGCal/TICL/interface/TICLInterpretationAlgoBase.h"
 #include "RecoHGCal/TICL/plugins/TICLInterpretationPluginFactory.h"
 #include "RecoHGCal/TICL/plugins/GeneralInterpretationAlgo.h"
+#include "RecoHGCal/TICL/plugins/GNNInterpretationAlgo.h"
 
 #include "RecoParticleFlow/PFProducer/interface/PFMuonAlgo.h"
 
@@ -332,7 +333,7 @@ void TICLCandidateProducer::produce(edm::Event &evt, const edm::EventSetup &es) 
                         true);
   if (regressionAndPid_) {
     // Run inference algorithm
-    inferenceAlgo_->inputData(layerClusters, *resultTracksters);
+    inferenceAlgo_->inputData(layerClusters, *resultTracksters, rhtools_);
     inferenceAlgo_->runInference(
         *resultTracksters);  //option to use "Linking" instead of "CLU3D"/"energyAndPid" instead of "PID"
   }
@@ -377,6 +378,15 @@ void TICLCandidateProducer::produce(edm::Event &evt, const edm::EventSetup &es) 
 
   auto getPathLength =
       [&](const reco::Track &track, float zVal) {
+        // Bail out early if inner/outer surfaces are not available
+        if (!track.innerOk() || !track.outerOk()) {
+          if (edm::isDebugEnabled()) {
+            LogDebug("TICLCandidateProducer")
+                << "Not able to use the track to compute the path length. A straight line will be used instead.";
+          }
+          return 0.f;
+        }
+
         const auto &fts_inn = trajectoryStateTransform::innerFreeState(track, bFieldProd);
         const auto &fts_out = trajectoryStateTransform::outerFreeState(track, bFieldProd);
         const auto &surf_inn = trajectoryStateTransform::innerStateOnSurface(track, *trackingGeometry_, bFieldProd);

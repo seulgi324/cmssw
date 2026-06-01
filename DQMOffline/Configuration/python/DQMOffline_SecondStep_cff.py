@@ -23,6 +23,8 @@ DQMNone = cms.Sequence()
 
 DQMOffline_SecondStepEcal = cms.Sequence( ecal_dqm_client_offline *
 					  es_dqm_client_offline )
+from Configuration.Eras.Modifier_phase2_ecal_devel_cff import phase2_ecal_devel
+phase2_ecal_devel.toReplaceWith(DQMOffline_SecondStepEcal, DQMOffline_SecondStepEcal.copyAndExclude([es_dqm_client_offline]))
 
 DQMOffline_SecondStepTrackerStrip = cms.Sequence( SiStripOfflineDQMClient )
 
@@ -87,6 +89,7 @@ from DQMOffline.Muon.muonQualityTests_cff import *
 from DQMOffline.EGamma.egammaPostProcessing_cff import *
 from DQMOffline.HLTScouting.HLTScoutingPostProcessing_cff import *
 from DQMOffline.Trigger.DQMOffline_Trigger_Client_cff import *
+from DQMOffline.Trigger.HeterogeneousMonitoringClient_cff import *
 from DQMOffline.Trigger.DQMOffline_HLT_Client_cff import *
 from DQMOffline.RecoB.dqmCollector_cff import *
 from DQM.BeamMonitor.AlcaBeamMonitorClient_cff import *
@@ -100,6 +103,9 @@ DQMOffline_SecondStepEGamma = cms.Sequence( egammaPostProcessing )
 
 DQMOffline_SecondStepTrigger = cms.Sequence( triggerOfflineDQMClient *
 						hltOfflineDQMClient )
+
+# HLT Heterogeneous monitoring sequence
+DQMHarvestHLTGPUvsCPU = cms.Sequence( HLTHeterogeneousMonitoringHarvesting )
 
 DQMOffline_SecondStepBTag = cms.Sequence( bTagCollectorSequenceDATA )
 
@@ -255,6 +261,7 @@ run3_GEM.toReplaceWith(DQMHarvestMuon, _run3_GEM_DQMHarvestMuon)
 DQMHarvestEcal = cms.Sequence( ecal_dqm_client_offline *
                                 es_dqm_client_offline
                               )
+phase2_ecal_devel.toReplaceWith(DQMHarvestEcal, DQMHarvestEcal.copyAndExclude([es_dqm_client_offline]))
 
 DQMHarvestHcal = cms.Sequence( hcalOfflineHarvesting )
 

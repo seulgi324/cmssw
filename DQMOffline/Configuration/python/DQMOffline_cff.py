@@ -32,6 +32,12 @@ DQMOfflineDCS = cms.Sequence( dqmProvInfo )
 
 # HLT Scouting trigger sequence
 DQMOfflineScouting = cms.Sequence( hltScoutingDqmOffline ) 
+from Configuration.Eras.Modifier_run3_common_cff import run3_common
+from Configuration.Eras.Modifier_phase2_common_cff import phase2_common
+## Remove Scouting DQM in run1/2 eras and phase2
+(~run3_common | phase2_common | pp_on_AA).toReplaceWith(DQMOfflineScouting, cms.Sequence( ))
+DQMOfflineScoutingForRelVals = DQMOfflineScouting.copy()
+DQMOfflineScoutingForRelVals.replace(hltScoutingDqmOffline, hltScoutingDqmOfflineForRelVals)
 
 # HLT Heterogeneous monitoring sequence
 DQMOfflineHLTGPUvsCPU =  cms.Sequence( HLTHeterogeneousMonitoringSequence )
@@ -56,6 +62,7 @@ DQMOfflineEcal = cms.Sequence(
 
 from Configuration.Eras.Modifier_phase2_ecal_devel_cff import phase2_ecal_devel
 phase2_ecal_devel.toReplaceWith(DQMOfflineEcalOnly, DQMOfflineEcalOnly.copyAndExclude([es_dqm_source_offline]))
+phase2_ecal_devel.toReplaceWith(DQMOfflineEcal, DQMOfflineEcal.copyAndExclude([es_dqm_source_offline]))
 
 #offline version of the online DQM: used in validation/certification
 DQMOfflineHcal = cms.Sequence( hcalOfflineSourceSequence )
@@ -161,6 +168,7 @@ DQMOfflinePrePOG = cms.Sequence( DQMOfflineTracking *
                                  DQMOfflineJetMET *
                                  DQMOfflineEGamma *
                                  DQMOfflineTrigger *
+                                 DQMOfflineScoutingForRelVals *
                                  DQMOfflineBTag *
                                  DQMOfflineBeam *
                                  DQMOfflinePhysics )
@@ -198,14 +206,13 @@ DQMOfflineExpress = cms.Sequence( DQMOfflinePreDPGExpress *
                                   HLTMonitoring *
                                   DQMMessageLogger )
 
-
 DQMOfflineExtraHLT = cms.Sequence( offlineValidationHLTSource )
 
 
 DQMOfflineFakeHLT = cms.Sequence( DQMOffline )
 DQMOfflineFakeHLT.remove( HLTMonitoring )
 DQMOfflineFakeHLT.remove( DQMOfflineTrigger )
-
+DQMOfflineFakeHLT.remove( DQMOfflineScoutingForRelVals )
 #MC
 DQMOfflinePrePOGMC = cms.Sequence( DQMOfflineVertex *
                                    DQMOfflineBTag *
@@ -244,6 +251,7 @@ DQMOfflineCommon = cms.Sequence( DQMOfflineDCS *
 				 DQMOfflineTrackerPixel *
                                  DQMOfflineTracking *
                                  DQMOfflineTrigger *
+                                 DQMOfflineScoutingForRelVals *
                                  DQMOfflineBeam *
                                  DQMOfflineCASTOR *
                                  DQMOfflinePhysics *
@@ -252,6 +260,7 @@ DQMOfflineCommon = cms.Sequence( DQMOfflineDCS *
 
 DQMOfflineCommonFakeHLT = cms.Sequence( DQMOfflineCommon )
 DQMOfflineCommonFakeHLT.remove( DQMOfflineTrigger )
+DQMOfflineCommonFakeHLT.remove( DQMOfflineScoutingForRelVals )
 
 #MinBias/ZeroBias
 DQMOfflineTrackerStripMinBias = cms.Sequence( SiStripDQMTier0MinBias )
@@ -326,3 +335,5 @@ from PhysicsTools.NanoAOD.nanogenDQM_cff import nanogenDQM
 DQMOfflineNanoGen = cms.Sequence(nanogenDQM)
 from PhysicsTools.NanoAOD.nanojmeDQM_cff import nanojmeDQM
 DQMOfflineNanoJME = cms.Sequence(nanojmeDQM)
+from HLTrigger.NGTScouting.hltNanoDQM_cff import hltNanoDQM
+DQMOfflineNanoHLT = cms.Sequence(hltNanoDQM)

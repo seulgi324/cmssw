@@ -60,7 +60,8 @@ void HGCalMappingModuleIndexer::processNewModule(uint32_t fedid,
 void HGCalMappingModuleIndexer::finalize() {
   //max indices at different levels
   nfeds_ = fedReadoutSequences_.size();
-  maxModulesIdx_ = std::accumulate(globalTypesCounter_.begin(), globalTypesCounter_.end(), 0);
+  maxModulesCount_ = std::accumulate(globalTypesCounter_.begin(), globalTypesCounter_.end(), 0);
+  maxModulesIdx_ = globalTypesCounter_.size();
   maxErxIdx_ = std::inner_product(globalTypesCounter_.begin(), globalTypesCounter_.end(), globalTypesNErx_.begin(), 0);
   maxDataIdx_ =
       std::inner_product(globalTypesCounter_.begin(), globalTypesCounter_.end(), globalTypesNWords_.begin(), 0);
@@ -69,7 +70,7 @@ void HGCalMappingModuleIndexer::finalize() {
   moduleOffsets_.resize(maxModulesIdx_, 0);
   erxOffsets_.resize(maxModulesIdx_, 0);
   dataOffsets_.resize(maxModulesIdx_, 0);
-  for (size_t i = 1; i < globalTypesCounter_.size(); i++) {
+  for (size_t i = 1; i < maxModulesIdx_; i++) {
     moduleOffsets_[i] = globalTypesCounter_[i - 1] + moduleOffsets_[i - 1];
     erxOffsets_[i] = globalTypesCounter_[i - 1] * globalTypesNErx_[i - 1] + erxOffsets_[i - 1];
     dataOffsets_[i] = globalTypesCounter_[i - 1] * globalTypesNWords_[i - 1] + dataOffsets_[i - 1];
@@ -126,8 +127,7 @@ void HGCalMappingModuleIndexer::finalize() {
       uint32_t internalData_offset = globalTypesNWords_[type_val] * typeCounters[type_val];
       fedit.chDataOffsets_[i] = baseData_offset + internalData_offset;
 
-      //enabled erx flags
-      //FIXME: assume all eRx are enabled now
+      //enabled erx flags: by default all available are enabled - configuration may override
       fedit.enabledErx_[i] = (0b1 << globalTypesNErx_[type_val]) - 0b1;
       typeCounters[type_val]++;
     }

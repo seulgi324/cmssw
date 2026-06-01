@@ -36,8 +36,10 @@ namespace lst {
                                              std::vector<float> const& see_stateTrajGlbPz,
                                              std::vector<int> const& see_q,
                                              std::vector<std::vector<int>> const& see_hitIdx,
+                                             std::vector<std::vector<int>> const& see_hitType,
                                              std::vector<unsigned int> const& see_algo,
                                              std::vector<unsigned int> const& ph2_detId,
+                                             std::vector<uint16_t> const& ph2_clustSize,
                                              std::vector<float> const& ph2_x,
                                              std::vector<float> const& ph2_y,
                                              std::vector<float> const& ph2_z,
@@ -49,6 +51,7 @@ namespace lst {
     std::vector<float> trkX;
     std::vector<float> trkY;
     std::vector<float> trkZ;
+    std::vector<uint16_t> hitClustSize;
     std::vector<unsigned int> hitId;
     std::vector<unsigned int> hitIdxs;
     std::vector<Params_pLS::ArrayUxHits> hitIndices_vec;
@@ -86,6 +89,7 @@ namespace lst {
     trkX.reserve(4 * n_see);
     trkY.reserve(4 * n_see);
     trkZ.reserve(4 * n_see);
+    hitClustSize.reserve(4 * n_see);
     hitId.reserve(4 * n_see);
     hitIdxs.reserve(hit_size + 4 * n_see);
     hitIdxs.resize(hit_size);
@@ -153,14 +157,19 @@ namespace lst {
         trkX.push_back(r3LH.x());
         trkY.push_back(r3LH.y());
         trkZ.push_back(r3LH.z());
-        hitId.push_back(1);
-        hitId.push_back(1);
-        hitId.push_back(1);
+        auto const& hTypes = see_hitType[iSeed];
+        auto constexpr intPixel = static_cast<int>(HitType::Pixel);
+        auto const& hIdxs = see_hitIdx[iSeed];
+        for (int iSH = 0; iSH < 3; iSH++) {
+          hitId.push_back(hTypes[iSH] == intPixel ? kPixelModuleId : ph2_detId[hIdxs[iSH]]);
+          hitClustSize.push_back(hTypes[iSH] == intPixel ? 1 : ph2_clustSize[hIdxs[iSH]]);
+        }
         if (see_hitIdx[iSeed].size() > 3) {
           trkX.push_back(r3LH.x());
           trkY.push_back(see_dxy[iSeed]);
           trkZ.push_back(see_dz[iSeed]);
-          hitId.push_back(1);
+          hitId.push_back(hTypes[3] == intPixel ? kPixelModuleId : ph2_detId[hIdxs[3]]);
+          hitClustSize.push_back(hTypes[3] == intPixel ? 1 : ph2_clustSize[hIdxs[3]]);
         }
         px_vec.push_back(px);
         py_vec.push_back(py);
@@ -206,14 +215,15 @@ namespace lst {
       nPixelSeeds = n_max_pixel_segments_per_module;
     }
 
-    std::array<int, 2> const soa_sizes{{nHitsIT + nHitsOT, nPixelSeeds}};
-    LSTInputHostCollection lstInputHC(soa_sizes, queue);
+    LSTInputHostCollection lstInputHC(queue, nHitsIT + nHitsOT, nPixelSeeds);
 
-    auto hits = lstInputHC.view<HitsBaseSoA>();
+    auto hits = lstInputHC.view().hits();
+    hits.nHitsOT() = nHitsOT;
     std::memcpy(hits.xs().data(), ph2_x.data(), nHitsOT * sizeof(float));
     std::memcpy(hits.ys().data(), ph2_y.data(), nHitsOT * sizeof(float));
     std::memcpy(hits.zs().data(), ph2_z.data(), nHitsOT * sizeof(float));
     std::memcpy(hits.detid().data(), ph2_detId.data(), nHitsOT * sizeof(unsigned int));
+    std::memcpy(hits.clustsize().data(), ph2_clustSize.data(), nHitsOT * sizeof(uint16_t));
 #ifndef LST_STANDALONE
     std::memcpy(hits.hits().data(), ph2_hits.data(), nHitsOT * sizeof(TrackingRecHit const*));
 #endif
@@ -222,13 +232,14 @@ namespace lst {
     std::memcpy(hits.ys().data() + nHitsOT, trkY.data(), nHitsIT * sizeof(float));
     std::memcpy(hits.zs().data() + nHitsOT, trkZ.data(), nHitsIT * sizeof(float));
     std::memcpy(hits.detid().data() + nHitsOT, hitId.data(), nHitsIT * sizeof(unsigned int));
+    std::memcpy(hits.clustsize().data() + nHitsOT, hitClustSize.data(), nHitsIT * sizeof(uint16_t));
 #ifndef LST_STANDALONE
     std::memset(hits.hits().data() + nHitsOT, 0, nHitsIT * sizeof(TrackingRecHit const*));
 #endif
 
     std::memcpy(hits.idxs().data(), hitIdxs.data(), (nHitsIT + nHitsOT) * sizeof(unsigned int));
 
-    auto pixelSeeds = lstInputHC.view<PixelSeedsSoA>();
+    auto pixelSeeds = lstInputHC.view().pixelSeeds();
     std::memcpy(pixelSeeds.hitIndices().data(), hitIndices_vec.data(), nPixelSeeds * sizeof(Params_pLS::ArrayUxHits));
     std::memcpy(pixelSeeds.deltaPhi().data(), deltaPhi_vec.data(), nPixelSeeds * sizeof(float));
     std::memcpy(pixelSeeds.ptIn().data(), ptIn_vec.data(), nPixelSeeds * sizeof(float));
