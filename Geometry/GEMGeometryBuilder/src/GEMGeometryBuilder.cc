@@ -238,7 +238,11 @@ GEMChamber* GEMGeometryBuilder::buildChamber(DDFilteredView& fv, GEMDetId detId)
   bool ge0Station = detId.station() == GEMDetId::minStationId0;
   std::vector<double> dpar = ge0Station ? solid.parameters() : solid.solidA().parameters();
 
+<<<<<<< Updated upstream
   if (dpar.size() == 0) {
+=======
+ if (dpar.size() == 0) {
+>>>>>>> Stashed changes
     const DDBooleanSolid bs(fv.logicalPart().solid());
     dpar = bs.solidA().parameters();
   }
@@ -291,6 +295,11 @@ GEMEtaPartition* GEMGeometryBuilder::buildEtaPartition(DDFilteredView& fv, GEMDe
   // EtaPartition specific parameter (size)
   std::vector<double> dpar = fv.logicalPart().solid().parameters();
   
+  if (dpar.size() == 0) {
+    const DDBooleanSolid bs(fv.logicalPart().solid());
+    dpar = bs.solidA().parameters();
+  }
+
   if (dpar.size() == 0) {
     const DDBooleanSolid bs(fv.logicalPart().solid());
     dpar = bs.solidA().parameters();

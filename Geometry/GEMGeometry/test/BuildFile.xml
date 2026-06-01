@@ -16,6 +16,6 @@
 <library file="ME0GeometryAnalyzer.cc" name="ME0GeometryAnalyzer">
 </library>
 <export>
-<library file="MyGE0Analyzer.cc" name="MyGE0Analyzer">
+<library file="Gimbab.cc" name="gimbab.cfg">
 </library>
 </export>
