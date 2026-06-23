@@ -4,26 +4,26 @@
   <ConstantsSection label="ge0.xml" eval="true">
     <Constant name="rMin"   value="620*mm"/>
     <Constant name="rMax"   value="1730*mm"/>
-    <Constant name="dZ"     value="437.5*mm"/>      <!-- Temporary Fix -->
-    <Constant name="rPos"   value="([dZ] + [rMin])"/>
-    <Constant name="dzGE0"  value="112.9*mm"/>
-    <Constant name="zFrGE0" value="10.0*mm"/>
-    <Constant name="zGpGE0" value="5.0*mm"/>
+    <Constant name="dZ"     value="395.686*mm"/>      <!-- Temporary Fix -->
+    <Constant name="rPos"   value="([dZ] + [rMin])"/>   <!-- actual middle point-->
+    <Constant name="dzGE0"  value="112.9*mm"/>    <!--Detector Thickness-->
+    <Constant name="zFrGE0" value="10.0*mm"/>  <!--some kind of spacing...-->
+    <Constant name="zGpGE0" value="5.0*mm"/>  <!--NOT used herer-->
     <Constant name="zPos"   value="([cms:CalorBeamZ3] + [zFrGE0] + [dzGE0])"/>
-    <Constant name="zShift" value="41.70*mm"/>
-    <Constant name="z10"    value="101.85*mm"/> 
-    <Constant name="z20"    value="([z10]-[zShift])"/> 
+    <Constant name="zShift" value="41.70*mm"/>  <!-- center to center between modules in the stack -->
+    <Constant name="z10"    value="101.85*mm"/>  <!-- location of stack one; farest from the beamline --> 
+    <Constant name="z20"    value="([z10]-[zShift])"/>  
     <Constant name="z30"    value="([z20]-[zShift])"/> 
     <Constant name="z40"    value="([z30]-[zShift])"/> 
     <Constant name="z50"    value="([z40]-[zShift])"/> 
-    <Constant name="z60"    value="([z50]-[zShift])"/> 
-    <Constant name="Angle"  value="10.0*deg"/>
+    <Constant name="z60"    value="([z50]-[zShift])"/>  <!-- location of stack one; nearest from the beamline -->
+    <Constant name="Angle"  value="10.0*deg"/>  <!-- half coverage 20/2-->
     <Constant name="slope"  value="tan([Angle])"/>
-    <Constant name="tol"    value="0.001*mm"/>
-    <Constant name="xBot"   value="([rMin]*[slope]-[tol])"/> 
-    <Constant name="xTop"   value="(2.*[dZ]*[slope]+[xBot])"/>
-    <Constant name="tBase"  value="1.6*mm"/>
-    <Constant name="tFoil"  value="0.025*mm"/>
+    <Constant name="tol"    value="0.001*mm"/>  <!--NOTSURE-->
+    <Constant name="xBot"   value="([rMin]*[slope]-[tol])"/>   <!--half very bottom of ME0 (like ieta8) -->
+    <Constant name="xTop"   value="(2.*[dZ]*[slope]+[xBot])"/>  <!-- dX of rMin+2dZ-->
+    <Constant name="tBase"  value="1.6*mm"/>  <!-- Maybe half of 3.2 mm -->
+    <Constant name="tFoil"  value="0.025*mm"/>  <!--Seems like only Kapton layer applied-->
     <Constant name="tSense" value="(6.0*mm-[tFoil])/2"/>
     <Constant name="tGas1"  value="(1.0*mm-2*[tFoil])/2"/>
     <Constant name="tGas2"  value="(2.0*mm-2*[tFoil])/2"/>
@@ -40,19 +40,20 @@
     <Constant name="zRead"  value="([zGas3]+[tGas3]+[tRead])"/>
     <Constant name="zTop"   value="([zRead]+[tRead]+[tTop])"/>
   
-    <Constant name="dzGap"  value="0.2500*mm"/>
-    <Constant name="dzS1"   value="73.803*mm"/>
-    <Constant name="dzS2"   value="([dzS1])"/>
-    <Constant name="dzS3"   value="58.463*mm"/>
-    <Constant name="dzS4"   value="([dzS3])"/>
-    <Constant name="dzS5"   value="46.566*mm"/>
-    <Constant name="dzS6"   value="([dzS5])"/>
-    <Constant name="dzS7"   value="38.213*mm"/>
-    <Constant name="dzS8"   value="([dzS7])"/>
+    <Constant name="dzGap"  value="0.0750*mm"/>
+    <Constant name="dzS1"   value="68.573*mm"/>
+    <Constant name="dzS2"   value="61.738*mm"/>
+    <Constant name="dzS3"   value="55.660*mm"/>
+    <Constant name="dzS4"   value="50.241*mm"/>
+    <Constant name="dzS5"   value="45.394*mm"/>
+    <Constant name="dzS6"   value="41.049*mm"/>
+    <Constant name="dzS7"   value="37.143*mm"/>
+    <Constant name="dzS8"   value="33.703*mm"/>
+    <Constant name="dzWing" value="78.790*mm"/>
 
     <Constant name="dzInL"  value="([dzS1]+[dzS2]+[dzS3]+[dzS4]+[dzS5]+[dzS6]+[dzS7]+[dzS8]+7*[dzGap])"/>
     <Constant name="z10L"   value="([dzInL]-[dzS1])"/> 
-    <Constant name="z20L"   value="([z10L]-[dzS1]-2*[dzGap]-[dzS2])"/> 
+    <Constant name="z20L"   value="([z10L]-[dzS1]-2*[dzGap]-[dzS2])"/>   <!-- Why 2*dzGap?-->
     <Constant name="z30L"   value="([z20L]-[dzS2]-2*[dzGap]-[dzS3])"/> 
     <Constant name="z40L"   value="([z30L]-[dzS3]-2*[dzGap]-[dzS4])"/> 
     <Constant name="z50L"   value="([z40L]-[dzS4]-2*[dzGap]-[dzS5])"/> 
@@ -77,8 +78,8 @@
     <Constant name="dx72"   value="([dxTop]-[slope]*([dzInL]-[z70L]-[dzS7]))"/>
     <Constant name="dx81"   value="([dxTop]-[slope]*([dzInL]-[z80L]+[dzS8]))"/>
     <Constant name="dx82"   value="([dxTop]-[slope]*([dzInL]-[z80L]-[dzS8]))"/>
-    <Constant name="dxWing" value="1.4*cm"/>
-    <Constant name="dxTopR" value="[dxTop]-[dxWing]"/>
+    <Constant name="dxWing" value="[slope]*[dzWing]"/>
+    <Constant name="dxTopR" value="[dx12]-[dxWing]"/>
     <Constant name="zero"   value="0.0*fm"/>
 
   </ConstantsSection>
@@ -164,11 +165,9 @@
     </UnionSolid>
     <UnionSolid name="Eta1Wings">
       <rSolid name="Eta1Wing"/>
-      <rSolid name="Eta1Wing"/>
       <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
     </UnionSolid>
     <UnionSolid name="Eta2Wings">
-      <rSolid name="Eta2Wing"/>
       <rSolid name="Eta2Wing"/>
       <Translation x="2*[dxTopR]" y="[zero]" z="[zero]"/>
     </UnionSolid>
@@ -218,14 +217,15 @@
       <rSolid name="GE0TopWings"/>
       <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
     </SubtractionSolid>
+
     <SubtractionSolid name="GHA001">
       <rSolid name="GHA001_raw"/>
-      <rSolid name="Eta1Wings"/>
+      <rSolid name="Eta1Wing"/>
       <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
     </SubtractionSolid>
     <SubtractionSolid name="GHA002">
       <rSolid name="GHA002_raw"/>
-      <rSolid name="Eta2Wings"/>
+      <rSolid name="Eta2Wing"/>
       <Translation x="-[dxTopR]" y="[zero]" z="[zero]"/>
     </SubtractionSolid>
   </SolidSection>
