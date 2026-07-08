@@ -178,7 +178,7 @@ MuonTrajectoryBuilder::TrajectoryContainer StandAloneMuonTrajectoryBuilder::traj
   std::cout << "lastDetId subDetId: " << lastDetId.subdetId() << std::endl;
   std::cout << "lastDetId ME0? " << (lastDetId.subdetId() == MuonSubdetId::ME0) << std::endl;
 
- DetLayerWithState inputFromSeed = propagateTheSeedTSOS(lastTSOS, lastDetId);
+  DetLayerWithState inputFromSeed = propagateTheSeedTSOS(lastTSOS, lastDetId);
 
   // refine the FTS given by the seed
 
